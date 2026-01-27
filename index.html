@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anti-Inflammatory Therapies after SLT - Research Day 2026 BOS</title>
+
+  <!-- Google Fonts -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- D3.js for visualizations -->
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+  <style>
+    :root {
+      /* Medical/Ophthalmology Color Palette */
+      --primary-dark: #0a192f;
+      --primary: #112240;
+      --secondary: #1d3557;
+      --accent-teal: #00b4d8;
+      --accent-cyan: #64ffda;
+      --accent-gold: #ffd700;
+      --text-primary: #e6f1ff;
+      --text-secondary: #8892b0;
+      --text-muted: #495670;
+      
+      /* Semantic Colors */
+      --success: #4ade80;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      
+      /* Statistical Significance */
+      --sig-high: #4ade80;
+      --sig-medium: #a3e635;
+      --sig-low: #fde047;
+      --sig-none: #6b7280;
+      
+      /* Drug Colors */
+      --diclofenac: #00b4d8;
+      --prednisolone1: #8b5cf6;
+      --prednisolone012: #a78bfa;
+      --ketorolac: #f97316;
+      --indomethacin: #22c55e;
+      --dexamethasone: #ef4444;
+      --placebo: #6b7280;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--primary-dark);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+    
+    /* Typography */
+    .slide-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: var(--text-primary);
+    }
+    
+    .slide-subtitle {
+      font-size: clamp(1rem, 2vw, 1.4rem);
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 0.5rem;
+    }
+    
+    .stat-hero {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    
+    .stat-label {
+      font-size: clamp(1rem, 2vw, 1.5rem);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 0.5rem;
+    }
+    
+    .body-text {
+      font-size: clamp(1rem, 1.8vw, 1.3rem);
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 60ch;
+    }
+    
+    .highlight {
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    
+    /* Slides Container */
+    .slides-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      padding: 4rem 5%;
+      overflow: hidden;
+      background: var(--primary-dark);
+    }
+    
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Slide Layouts */
+    .slide-centered {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .slide-two-column {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    
+    .slide-hero-stat {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    
+    /* Title Slide Specific */
+    .title-slide {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+      position: relative;
+    }
+    
+    .title-slide::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      background: radial-gradient(ellipse at 70% 50%, rgba(0, 180, 216, 0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    
+    .title-slide .main-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      max-width: 900px;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+    
+    .title-slide .study-type {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
+      padding: 0.4rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 1.5rem;
+    }
+    
+    .authors {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .affiliation {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    
+    .congress-info {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(100, 255, 218, 0.2);
+    }
+    
+    .congress-name {
+      font-size: 1.1rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    
+    /* Disclosure Slide */
+    .disclosure-box {
+      background: rgba(17, 34, 64, 0.8);
+      border: 1px solid rgba(100, 255, 218, 0.3);
+      border-radius: 12px;
+      padding: 2.5rem;
+      max-width: 700px;
+      margin: 2rem auto;
+    }
+    
+    .disclosure-box h3 {
+      color: var(--accent-cyan);
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .disclosure-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+    }
+    
+    .disclosure-item:last-child {
+      border-bottom: none;
+    }
+    
+    .check-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-dark);
+      font-weight: bold;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    /* Background Slide */
+    .concept-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .concept-card {
+      background: rgba(17, 34, 64, 0.6);
+      border: 1px solid rgba(100, 255, 218, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .concept-card:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+    
+    .concept-card .icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .concept-card h4 {
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .concept-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    /* Paradox Box */
+    .paradox-box {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(239, 68, 68, 0.1));
+      border: 2px solid var(--warning);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 2rem 0;
+      text-align: center;
+    }
+    
+    .paradox-box .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .paradox-box h3 {
+      color: var(--warning);
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .paradox-box p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    /* Methods PRISMA */
+    .prisma-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1.5rem 0;
+    }
+    
+    .prisma-box {
+      background: rgba(17, 34, 64, 0.8);
+      border: 1px solid rgba(100, 255, 218, 0.3);
+      border-radius: 8px;
+      padding: 0.8rem 1.5rem;
+      text-align: center;
+      min-width: 280px;
+    }
+    
+    .prisma-box.highlight-box {
+      background: linear-gradient(135deg, rgba(0, 180, 216, 0.2), rgba(100, 255, 218, 0.1));
+      border-color: var(--accent-cyan);
+    }
+    
+    .prisma-box .number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    
+    .prisma-box .label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    
+    .prisma-arrow {
+      color: var(--text-muted);
+      font-size: 1.5rem;
+    }
+    
+    /* Network Visualization */
+    .network-container {
+      width: 100%;
+      height: 400px;
+      position: relative;
+    }
+    
+    .network-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    /* Ranking Chart */
+    .ranking-chart {
+      width: 100%;
+      margin: 1rem 0;
+    }
+    
+    .rank-bar-container {
+      margin: 0.8rem 0;
+    }
+    
+    .rank-bar-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.3rem;
+    }
+    
+    .drug-name {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .p-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    
+    .rank-bar-track {
+      height: 32px;
+      background: rgba(17, 34, 64, 0.8);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .rank-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding-left: 1rem;
+      transition: width 1s ease-out;
+    }
+    
+    /* Rank Heat Grid */
+    .rankheat-grid {
+      display: grid;
+      gap: 2px;
+      margin: 1rem auto;
+      max-width: 800px;
+    }
+    
+    .rankheat-header {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 0.5rem;
+      font-weight: 600;
+    }
+    
+    .rankheat-cell {
+      padding: 0.6rem 0.4rem;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    
+    .rankheat-label {
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      text-align: right;
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    
+    /* Key Finding Card */
+    .finding-card {
+      background: linear-gradient(135deg, rgba(0, 180, 216, 0.15), rgba(100, 255, 218, 0.05));
+      border: 1px solid rgba(100, 255, 218, 0.3);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 1rem 0;
+    }
+    
+    .finding-card h3 {
+      color: var(--accent-cyan);
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .finding-stat {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .finding-stat .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    
+    .finding-stat .unit {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+    }
+    
+    .finding-meta {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    
+    /* Tradeoff Grid */
+    .tradeoff-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .tradeoff-card {
+      background: rgba(17, 34, 64, 0.6);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border-left: 4px solid;
+    }
+    
+    .tradeoff-card.good {
+      border-color: var(--success);
+    }
+    
+    .tradeoff-card.bad {
+      border-color: var(--danger);
+    }
+    
+    .tradeoff-card h4 {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .tradeoff-card.good h4 { color: var(--success); }
+    .tradeoff-card.bad h4 { color: var(--danger); }
+    
+    .tradeoff-card ul {
+      list-style: none;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+    
+    .tradeoff-card li {
+      padding: 0.3rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    
+    .tradeoff-card li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--text-muted);
+    }
+    
+    /* Conclusions */
+    .conclusion-points {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin: 2rem 0;
+      max-width: 900px;
+    }
+    
+    .conclusion-point {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+    
+    .conclusion-number {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      flex-shrink: 0;
+    }
+    
+    .conclusion-text {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    .conclusion-text strong {
+      color: var(--text-primary);
+    }
+    
+    /* Q&A Slide */
+    .qa-content {
+      text-align: center;
+    }
+    
+    .qa-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .contact-info {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+    }
+    
+    .contact-info a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+    
+    /* Progress Bar */
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-teal), var(--accent-cyan));
+      transition: width 0.3s ease;
+      z-index: 100;
+    }
+    
+    /* Slide Counter */
+    .slide-counter {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+    
+    /* Timer */
+    .timer {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      z-index: 100;
+      display: none;
+    }
+    
+    .timer.visible {
+      display: block;
+    }
+    
+    /* Navigation Hints */
+    .nav-hints {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.6;
+      z-index: 100;
+    }
+    
+    kbd {
+      background: rgba(100, 255, 218, 0.1);
+      border: 1px solid rgba(100, 255, 218, 0.2);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+    }
+    
+    /* Animations */
+    @keyframes growBar {
+      from { width: 0; }
+    }
+    
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-in {
+      animation: fadeSlideUp 0.6s ease-out forwards;
+    }
+    
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    
+    /* Eye decoration */
+    .eye-decoration {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 2px solid rgba(100, 255, 218, 0.1);
+      pointer-events: none;
+    }
+    
+    .eye-decoration.top-right {
+      top: -100px;
+      right: -100px;
+    }
+    
+    .eye-decoration.bottom-left {
+      bottom: -100px;
+      left: -100px;
+    }
+    
+    /* Evidence Badge */
+    .evidence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--warning);
+      margin-top: 1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .slide-two-column {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .slide {
+        padding: 2rem 4%;
+      }
+      
+      .concept-cards,
+      .tradeoff-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+</head>
+<body>
+  <main class="slides-container">
+
+```
+<!-- Slide 1: Title -->
+<section class="slide title-slide slide-centered active" data-chapter="Title">
+  <div class="eye-decoration top-right"></div>
+  <span class="study-type">Systematic Review & Network Meta-Analysis</span>
+  <h1 class="main-title">Anti-Inflammatory Therapies after Selective Laser Trabeculoplasty</h1>
+  <p class="authors">Felipe Argolo Paraiso, M.D. • Leonardo Botari Yoshida, M.D. • Eduardo Bicalho Mariottoni, M.D.</p>
+  <p class="affiliation">Sorocaba's Eye Bank — Sorocaba, SP, Brazil</p>
+  <div class="congress-info">
+    <p class="congress-name">Research Day 2026 — BOS</p>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">PROSPERO: CRD420251127522</p>
+  </div>
+</section>
+
+<!-- Slide 2: Disclosures -->
+<section class="slide slide-centered" data-chapter="Disclosures">
+  <h2 class="slide-title">Conflict of Interest Disclosure</h2>
+  <div class="disclosure-box">
+    <div class="disclosure-item">
+      <span class="check-icon">✓</span>
+      <span>No financial relationships with commercial interests to disclose</span>
+    </div>
+    <div class="disclosure-item">
+      <span class="check-icon">✓</span>
+      <span>No dedicated funding received for this review</span>
+    </div>
+    <div class="disclosure-item">
+      <span class="check-icon">✓</span>
+      <span>No off-label or investigational use discussed</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 3: Background -->
+<section class="slide" data-chapter="Background">
+  <h2 class="slide-title">The SLT Therapeutic Paradox</h2>
+  <p class="slide-subtitle">Understanding the mechanism creates a clinical dilemma</p>
+  
+  <div class="concept-cards">
+    <div class="concept-card">
+      <div class="icon">🔬</div>
+      <h4>SLT Mechanism</h4>
+      <p>Selective photolysis triggers <span class="highlight">inflammatory cascade</span> (IL-1α, IL-1β, IL-8, TNF-α) recruiting macrophages to remodel trabecular meshwork</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">📈</div>
+      <h4>Therapeutic Effect</h4>
+      <p>Inflammation-mediated debris clearance and extracellular matrix remodeling reduces <span class="highlight">outflow resistance</span></p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">⚡</div>
+      <h4>Adverse Effects</h4>
+      <p>Same inflammation causes post-procedural <span class="highlight">pain</span>, <span class="highlight">anterior chamber reaction</span>, and acute <span class="highlight">IOP spikes</span></p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">💊</div>
+      <h4>Current Practice</h4>
+      <p>NSAIDs and corticosteroids routinely prescribed, but <span class="highlight">no consensus</span> on optimal agent</p>
+    </div>
+  </div>
+  
+  <div class="paradox-box">
+    <div class="icon">⚠️</div>
+    <h3>The Paradox</h3>
+    <p>By treating post-SLT symptoms with anti-inflammatory agents, are we inadvertently <strong>suppressing the therapeutic effect</strong> of the laser itself?</p>
+  </div>
+</section>
+
+<!-- Slide 4: Objective -->
+<section class="slide slide-centered" data-chapter="Objective">
+  <div style="max-width: 800px;">
+    <h2 class="slide-title" style="margin-bottom: 2rem;">Research Objective</h2>
+    <p class="body-text" style="font-size: 1.4rem; margin-bottom: 2rem;">
+      To compare the effects of different <span class="highlight">topical anti-inflammatory agents</span> following SLT and establish a <span class="highlight">ranked treatment hierarchy</span> based on clinical outcomes
+    </p>
+    <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
+      <div style="background: rgba(0, 180, 216, 0.1); border: 1px solid rgba(0, 180, 216, 0.3); padding: 1rem 1.5rem; border-radius: 8px;">
+        <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 0.25rem;">Primary Outcome</div>
+        <div style="color: var(--text-secondary);">IOP change at 1 month</div>
+      </div>
+      <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); padding: 1rem 1.5rem; border-radius: 8px;">
+        <div style="color: #a78bfa; font-weight: 600; margin-bottom: 0.25rem;">Secondary Outcomes</div>
+        <div style="color: var(--text-secondary);">IOP spikes, Pain, AC inflammation</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 5: Methods -->
+<section class="slide slide-two-column" data-chapter="Methods">
+  <div>
+    <h2 class="slide-title">Study Selection</h2>
+    <p class="slide-subtitle">PRISMA 2020 compliant systematic search</p>
+    
+    <div class="prisma-flow">
+      <div class="prisma-box">
+        <div class="number">468</div>
+        <div class="label">Records identified</div>
+      </div>
+      <div class="prisma-arrow">↓</div>
+      <div class="prisma-box">
+        <div class="number">379</div>
+        <div class="label">After deduplication</div>
+      </div>
+      <div class="prisma-arrow">↓</div>
+      <div class="prisma-box">
+        <div class="number">64</div>
+        <div class="label">Full-text assessed</div>
+      </div>
+      <div class="prisma-arrow">↓</div>
+      <div class="prisma-box highlight-box">
+        <div class="number">6 RCTs</div>
+        <div class="label">Included in NMA</div>
+      </div>
+    </div>
+    
+    <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 1rem;">
+      Databases: CENTRAL, MEDLINE, Embase, SciELO<br>
+      Search date: December 2025
+    </div>
+  </div>
+  
+  <div>
+    <h3 style="color: var(--accent-cyan); margin-bottom: 1rem;">Study Characteristics</h3>
+    <div style="display: grid; gap: 1rem;">
+      <div class="concept-card" style="padding: 1rem;">
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-secondary);">Total eyes</span>
+          <span style="color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; font-weight: 600;">634</span>
+        </div>
+      </div>
+      <div class="concept-card" style="padding: 1rem;">
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-secondary);">Countries</span>
+          <span style="color: var(--text-primary);">🇨🇦 🇧🇪 🇺🇸 🇳🇴 🇧🇷</span>
+        </div>
+      </div>
+      <div class="concept-card" style="padding: 1rem;">
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-secondary);">Interventions</span>
+          <span style="color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; font-weight: 600;">7</span>
+        </div>
+      </div>
+      <div class="concept-card" style="padding: 1rem;">
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-secondary);">Follow-up</span>
+          <span style="color: var(--text-primary);">12 weeks – 12 months</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="network-mini" style="margin-top: 1.5rem; height: 200px;"></div>
+  </div>
+</section>
+
+<!-- Slide 6: Primary Outcome Hero -->
+<section class="slide slide-hero-stat" data-chapter="Results">
+  <p style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.9rem; margin-bottom: 0.5rem;">Primary Outcome • IOP Change at 1 Month</p>
+  <h2 class="slide-title" style="margin-bottom: 2rem;">Diclofenac 0.1% Ranked First</h2>
+  
+  <div class="stat-hero">0.74</div>
+  <div class="stat-label">P-Score (highest ranking)</div>
+  
+  <div class="finding-card" style="max-width: 600px; margin-top: 2rem;">
+    <h3>📊 vs Placebo (Common Effects Model)</h3>
+    <div class="finding-stat">
+      <span class="value">−1.59</span>
+      <span class="unit">mmHg</span>
+    </div>
+    <div class="finding-meta">95% CI: −2.96 to −0.23 • p = 0.022</div>
+  </div>
+  
+  <div class="evidence-badge">
+    <span>⚠️</span>
+    <span>Low to very low certainty of evidence (CINeMA)</span>
+  </div>
+</section>
+
+<!-- Slide 7: Treatment Rankings -->
+<section class="slide" data-chapter="Results">
+  <h2 class="slide-title">Treatment Ranking: IOP at 1 Month</h2>
+  <p class="slide-subtitle">P-Score hierarchy (1.0 = best, 0 = worst)</p>
+  
+  <div class="ranking-chart" id="ranking-chart">
+    <!-- Rendered by JS -->
+  </div>
+  
+  <div style="display: flex; gap: 2rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
+    <div style="text-align: center; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+      <div style="color: var(--danger); font-weight: 600;">⚠️ Worst Performer</div>
+      <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">Dexamethasone 0.1% trended toward<br><em>reduced</em> IOP-lowering vs placebo</div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 8: Rank Heat Plot -->
+<section class="slide" data-chapter="Results">
+  <h2 class="slide-title">Multi-Outcome Rankings</h2>
+  <p class="slide-subtitle">P-Scores across all outcomes reveal important trade-offs</p>
+  
+  <div id="rankheat-container" style="margin: 1rem 0;"></div>
+  
+  <div class="tradeoff-grid">
+    <div class="tradeoff-card good">
+      <h4>✓ Best for IOP Control</h4>
+      <ul>
+        <li>Diclofenac 0.1% — consistent top rank</li>
+        <li>Prednisolone 1% — strong alternative</li>
+      </ul>
+    </div>
+    <div class="tradeoff-card good">
+      <h4>✓ Best for Pain Relief</h4>
+      <ul>
+        <li>Ketorolac 0.5% — P-score 0.91</li>
+        <li>Diclofenac 0.1% — secondary option</li>
+      </ul>
+    </div>
+    <div class="tradeoff-card bad">
+      <h4>✗ Worst for IOP</h4>
+      <ul>
+        <li>Dexamethasone 0.1% — lowest across all time points</li>
+        <li>Performed worse than placebo numerically</li>
+      </ul>
+    </div>
+    <div class="tradeoff-card bad">
+      <h4>✗ Trade-off Alert</h4>
+      <ul>
+        <li>Ketorolac: best for pain, worst for AC inflammation</li>
+        <li>Indomethacin: best for AC, worst for pain</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 9: Conclusions -->
+<section class="slide" data-chapter="Conclusions">
+  <h2 class="slide-title">Conclusions</h2>
+  
+  <div class="conclusion-points">
+    <div class="conclusion-point">
+      <div class="conclusion-number">1</div>
+      <div class="conclusion-text">
+        <strong>Diclofenac 0.1%</strong> appears most effective for optimizing IOP outcomes following SLT, with consistent top rankings and statistically significant benefit in common effects analysis
+      </div>
+    </div>
+    <div class="conclusion-point">
+      <div class="conclusion-number">2</div>
+      <div class="conclusion-text">
+        <strong>Dexamethasone 0.1%</strong> consistently demonstrated the least favorable IOP outcomes, performing numerically worse than placebo across all time points
+      </div>
+    </div>
+    <div class="conclusion-point">
+      <div class="conclusion-number">3</div>
+      <div class="conclusion-text">
+        <strong>Treatment selection involves trade-offs:</strong> agents ranking highly for IOP (indomethacin) ranked poorly for pain, and vice versa (ketorolac)
+      </div>
+    </div>
+    <div class="conclusion-point">
+      <div class="conclusion-number">4</div>
+      <div class="conclusion-text">
+        Evidence certainty is <strong>low to very low</strong> — larger, adequately powered head-to-head trials are needed to confirm these hierarchies
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 10: Q&A -->
+<section class="slide slide-centered" data-chapter="Q&A">
+  <div class="qa-content">
+    <div class="qa-icon">🔬</div>
+    <h2 class="slide-title">Thank You</h2>
+    <p class="slide-subtitle" style="margin-bottom: 2rem;">Questions & Discussion</p>
+    
+    <div class="contact-info">
+      <div><strong>Felipe Argolo Paraiso, M.D.</strong></div>
+      <div>Sorocaba's Eye Bank, Brazil</div>
+      <div style="margin-top: 0.5rem; font-size: 0.85rem;">
+        PROSPERO Registration: <a href="#">CRD420251127522</a>
+      </div>
+    </div>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background: rgba(100, 255, 218, 0.1); border-radius: 8px; display: inline-block;">
+      <div style="font-size: 0.85rem; color: var(--text-muted);">Data available upon request</div>
+    </div>
+  </div>
+</section>
+```
+
+  </main>
+
+  <!-- Progress Bar -->
+
+  <div class="progress-bar" id="progress-bar"></div>
+
+  <!-- Slide Counter -->
+
+  <div class="slide-counter" id="slide-counter">1 / 10</div>
+
+  <!-- Timer -->
+
+  <div class="timer" id="timer">00:00</div>
+
+  <!-- Navigation Hints -->
+
+  <div class="nav-hints">
+    <span><kbd>←</kbd> <kbd>→</kbd> Navigate</span>
+    <span><kbd>F</kbd> Fullscreen</span>
+    <span><kbd>T</kbd> Timer</span>
+  </div>
+
+  <script>
+    // Presentation Controller
+    class Presentation {
+      constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.totalSlides = this.slides.length;
+        this.timer = null;
+        this.timerSeconds = 0;
+        this.timerVisible = false;
+        
+        this.init();
+      }
+      
+      init() {
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.updateProgress();
+        this.renderCharts();
+      }
+      
+      setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+          switch(e.key) {
+            case 'ArrowRight':
+            case ' ':
+            case 'PageDown':
+              e.preventDefault();
+              this.nextSlide();
+              break;
+            case 'ArrowLeft':
+            case 'PageUp':
+              e.preventDefault();
+              this.prevSlide();
+              break;
+            case 'Home':
+              e.preventDefault();
+              this.goToSlide(0);
+              break;
+            case 'End':
+              e.preventDefault();
+              this.goToSlide(this.totalSlides - 1);
+              break;
+            case 'f':
+            case 'F':
+              e.preventDefault();
+              this.toggleFullscreen();
+              break;
+            case 't':
+            case 'T':
+              e.preventDefault();
+              this.toggleTimer();
+              break;
+          }
+        });
+      }
+      
+      setupTouchNav() {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          const diff = touchStartX - touchEndX;
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) this.nextSlide();
+            else this.prevSlide();
+          }
+        });
+      }
+      
+      nextSlide() {
+        if (this.currentSlide < this.totalSlides - 1) {
+          this.goToSlide(this.currentSlide + 1);
+        }
+      }
+      
+      prevSlide() {
+        if (this.currentSlide > 0) {
+          this.goToSlide(this.currentSlide - 1);
+        }
+      }
+      
+      goToSlide(index) {
+        this.slides[this.currentSlide].classList.remove('active');
+        this.currentSlide = index;
+        this.slides[this.currentSlide].classList.add('active');
+        this.updateProgress();
+        
+        // Re-animate charts when returning to specific slides
+        if (index === 6) this.animateRankingChart();
+      }
+      
+      updateProgress() {
+        const progress = ((this.currentSlide + 1) / this.totalSlides) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+        document.getElementById('slide-counter').textContent = `${this.currentSlide + 1} / ${this.totalSlides}`;
+      }
+      
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+      
+      toggleTimer() {
+        const timerEl = document.getElementById('timer');
+        if (this.timerVisible) {
+          this.timerVisible = false;
+          timerEl.classList.remove('visible');
+          clearInterval(this.timer);
+        } else {
+          this.timerVisible = true;
+          this.timerSeconds = 0;
+          timerEl.classList.add('visible');
+          this.timer = setInterval(() => {
+            this.timerSeconds++;
+            const mins = Math.floor(this.timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (this.timerSeconds % 60).toString().padStart(2, '0');
+            timerEl.textContent = `${mins}:${secs}`;
+          }, 1000);
+        }
+      }
+      
+      renderCharts() {
+        this.renderRankingChart();
+        this.renderRankHeatPlot();
+        this.renderNetworkMini();
+      }
+      
+      renderRankingChart() {
+        const data = [
+          { drug: 'Diclofenac 0.1%', score: 0.74, color: '#00b4d8' },
+          { drug: 'Prednisolone 1%', score: 0.67, color: '#8b5cf6' },
+          { drug: 'Prednisolone 0.12%', score: 0.65, color: '#a78bfa' },
+          { drug: 'Indomethacin 0.1%', score: 0.59, color: '#22c55e' },
+          { drug: 'Ketorolac 0.5%', score: 0.40, color: '#f97316' },
+          { drug: 'Placebo', score: 0.27, color: '#6b7280' },
+          { drug: 'Dexamethasone 0.1%', score: 0.18, color: '#ef4444' }
+        ];
+        
+        const container = document.getElementById('ranking-chart');
+        container.innerHTML = '';
+        
+        data.forEach((item, i) => {
+          const barContainer = document.createElement('div');
+          barContainer.className = 'rank-bar-container';
+          barContainer.innerHTML = `
+            <div class="rank-bar-label">
+              <span class="drug-name">${item.drug}</span>
+              <span class="p-score" style="color: ${item.color}">${item.score.toFixed(2)}</span>
+            </div>
+            <div class="rank-bar-track">
+              <div class="rank-bar-fill" style="width: 0%; background: ${item.color}; opacity: 0.85;" data-width="${item.score * 100}"></div>
+            </div>
+          `;
+          container.appendChild(barContainer);
+        });
+        
+        // Animate after a short delay
+        setTimeout(() => this.animateRankingChart(), 100);
+      }
+      
+      animateRankingChart() {
+        const bars = document.querySelectorAll('.rank-bar-fill');
+        bars.forEach((bar, i) => {
+          setTimeout(() => {
+            bar.style.width = bar.dataset.width + '%';
+          }, i * 100);
+        });
+      }
+      
+      renderRankHeatPlot() {
+        const outcomes = ['IOP 1mo', 'IOP 3mo', 'IOP 6mo', 'IOP Spike', 'Pain', 'AC Inflam'];
+        const drugs = ['Diclofenac', 'Pred 1%', 'Pred 0.12%', 'Indo', 'Ketorolac', 'Dexa', 'Placebo'];
+        
+        // P-scores for each drug across outcomes (approximated from paper)
+        const scores = [
+          [0.74, 0.73, 0.77, 0.79, 0.67, 0.53],  // Diclofenac
+          [0.67, 0.57, 0.77, 0.61, 0.54, 0.31],  // Pred 1%
+          [0.65, 0.56, 0.47, 0.68, null, null],  // Pred 0.12%
+          [0.59, 0.50, 0.60, 0.51, 0.11, 0.79],  // Indomethacin
+          [0.40, 0.48, 0.32, 0.46, 0.91, 0.24],  // Ketorolac
+          [0.18, 0.25, 0.16, 0.23, 0.43, 0.39],  // Dexamethasone
+          [0.27, 0.41, 0.42, 0.40, 0.35, 0.73]   // Placebo
+        ];
+        
+        const container = document.getElementById('rankheat-container');
+        
+        // Create grid
+        const grid = document.createElement('div');
+        grid.className = 'rankheat-grid';
+        grid.style.gridTemplateColumns = `120px repeat(${outcomes.length}, 1fr)`;
+        
+        // Header row
+        grid.innerHTML = '<div></div>' + outcomes.map(o => `<div class="rankheat-header">${o}</div>`).join('');
+        
+        // Data rows
+        drugs.forEach((drug, i) => {
+          grid.innerHTML += `<div class="rankheat-label">${drug}</div>`;
+          scores[i].forEach(score => {
+            if (score === null) {
+              grid.innerHTML += `<div class="rankheat-cell" style="background: #1f2937; color: #6b7280;">—</div>`;
+            } else {
+              const color = this.getHeatColor(score);
+              grid.innerHTML += `<div class="rankheat-cell" style="background: ${color}">${score.toFixed(2)}</div>`;
+            }
+          });
+        });
+        
+        container.appendChild(grid);
+      }
+      
+      getHeatColor(score) {
+        // Color gradient from red (low) to green (high)
+        if (score >= 0.7) return '#4ade80';  // Green
+        if (score >= 0.5) return '#a3e635';  // Lime
+        if (score >= 0.35) return '#fde047'; // Yellow
+        if (score >= 0.2) return '#fb923c';  // Orange
+        return '#f87171';  // Red
+      }
+      
+      renderNetworkMini() {
+        const container = document.getElementById('network-mini');
+        if (!container) return;
+        
+        const width = container.offsetWidth || 300;
+        const height = 200;
+        
+        // Network data
+        const nodes = [
+          { id: 'Placebo', group: 0 },
+          { id: 'Diclofenac', group: 1 },
+          { id: 'Ketorolac', group: 1 },
+          { id: 'Indomethacin', group: 1 },
+          { id: 'Pred 1%', group: 2 },
+          { id: 'Pred 0.12%', group: 2 },
+          { id: 'Dexa', group: 2 }
+        ];
+        
+        const links = [
+          { source: 'Placebo', target: 'Diclofenac', value: 2 },
+          { source: 'Placebo', target: 'Ketorolac', value: 2 },
+          { source: 'Placebo', target: 'Indomethacin', value: 1 },
+          { source: 'Placebo', target: 'Pred 1%', value: 3 },
+          { source: 'Placebo', target: 'Dexa', value: 1 },
+          { source: 'Diclofenac', target: 'Pred 1%', value: 1 },
+          { source: 'Ketorolac', target: 'Pred 1%', value: 3 },
+          { source: 'Ketorolac', target: 'Pred 0.12%', value: 1 },
+          { source: 'Pred 1%', target: 'Pred 0.12%', value: 1 },
+          { source: 'Indomethacin', target: 'Dexa', value: 1 }
+        ];
+        
+        const svg = d3.select(container)
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height);
+        
+        const colorScale = d3.scaleOrdinal()
+          .domain([0, 1, 2])
+          .range(['#6b7280', '#00b4d8', '#8b5cf6']);
+        
+        const simulation = d3.forceSimulation(nodes)
+          .force('link', d3.forceLink(links).id(d => d.id).distance(60))
+          .force('charge', d3.forceManyBody().strength(-150))
+          .force('center', d3.forceCenter(width / 2, height / 2));
+        
+        const link = svg.append('g')
+          .selectAll('line')
+          .data(links)
+          .join('line')
+          .attr('stroke', '#495670')
+          .attr('stroke-width', d => d.value);
+        
+        const node = svg.append('g')
+          .selectAll('circle')
+          .data(nodes)
+          .join('circle')
+          .attr('r', 8)
+          .attr('fill', d => colorScale(d.group));
+        
+        const label = svg.append('g')
+          .selectAll('text')
+          .data(nodes)
+          .join('text')
+          .text(d => d.id)
+          .attr('font-size', '9px')
+          .attr('fill', '#8892b0')
+          .attr('text-anchor', 'middle')
+          .attr('dy', -12);
+        
+        simulation.on('tick', () => {
+          link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+          
+          node
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y);
+          
+          label
+            .attr('x', d => d.x)
+            .attr('y', d => d.y);
+        });
+      }
+    }
+    
+    // Initialize presentation
+    document.addEventListener('DOMContentLoaded', () => {
+      new Presentation();
+    });
+  </script>
+
+</body>
+</html>
