@@ -114,6 +114,17 @@
         .evento.plastica-ocular { background: #673ab7; color: white; }
         .evento.glaucoma-cirurgico { background: #3f51b5; color: white; }
         .evento.extra-ps { background: #f44336; color: white; }
+        .ps-badge { background: var(--primary); color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.75em; margin-bottom: 3px; display: inline-block; }
+        .cycle-badge { background: #00897b; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-bottom: 2px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .activity-filters { background: var(--bg-card); padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); display: none; }
+        .activity-filters.visible { display: block; }
+        .activity-filters h3 { margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9em; }
+        .activity-filter-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+        .activity-filter-group-label { font-size: 0.8em; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block; }
+        .activity-filter-item { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--filter-bg); border-radius: 4px; cursor: pointer; color: var(--text-primary); font-size: 0.8em; transition: all 0.15s; }
+        .activity-filter-item:hover { background: var(--filter-hover); }
+        .activity-filter-item input { cursor: pointer; }
+        .activity-filter-item.active { background: #00897b; color: white; }
         .ferias { color: var(--text-muted); padding: 2px 6px; font-size: 0.7em; margin-top: 2px; display: block; }
         .folga { background: #81c784; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-top: 2px; display: none; }
         .show-folgas .folga { display: block; }
@@ -160,6 +171,13 @@
         .ics-periodo-inputs input { flex: 1; padding: 8px; border: 1px solid var(--border-light); border-radius: 5px; background: var(--bg-card); color: var(--text-primary); font-size: 0.95em; }
         .ics-periodo-inputs span { color: var(--text-muted); }
         .ics-section-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: bold; }
+        /* === MAIN CALENDAR AULAS BADGES === */
+        .cal-ac-badge { display: block; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: 600; color: white; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cal-ac-aula { background: #1565c0; }
+        .cal-ac-caso { background: #c62828; }
+        .cal-ac-art { background: #e65100; }
+        .cal-ac-skip { background: var(--bg-tertiary); color: var(--text-muted); font-style: italic; font-weight: 500; border: 1px dotted var(--border-color); }
+        @media (prefers-color-scheme: dark) { .cal-ac-aula { background: #1976d2; } .cal-ac-caso { background: #d32f2f; } .cal-ac-art { background: #f57c00; } .cal-ac-skip { background: #333; color: #aaa; border-color: #555; } }
         /* === TAB NAVIGATION === */
         .page-tabs { background: var(--bg-card); padding: 0; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); display: flex; overflow: hidden; }
         .page-tab { flex: 1; padding: 16px 20px; background: var(--bg-secondary); color: var(--text-muted); border: none; cursor: pointer; font-size: 1.05em; font-weight: 600; transition: all 0.2s; text-align: center; border-bottom: 3px solid transparent; }
@@ -168,10 +186,10 @@
         .page-content { display: none; }
         .page-content.active { display: block; }
         /* === AULAS/CASOS CSS === */
-        #page-aulas { max-width: 1100px; margin: 0 auto; }
-        #page-aulas .ac-header { text-align: center; margin-bottom: 24px; }
-        #page-aulas .ac-header h1 { color: var(--text-primary); margin-bottom: 6px; font-size: 1.6em; }
-        #page-aulas .ac-header p { color: var(--text-muted); font-size: 0.95em; }
+        #page-aulas, #page-ciclos { max-width: 1100px; margin: 0 auto; }
+        #page-aulas .ac-header, #page-ciclos .ac-header { text-align: center; margin-bottom: 24px; }
+        #page-aulas .ac-header h1, #page-ciclos .ac-header h1 { color: var(--text-primary); margin-bottom: 6px; font-size: 1.6em; }
+        #page-aulas .ac-header p, #page-ciclos .ac-header p { color: var(--text-muted); font-size: 0.95em; }
         .ac-nav { background: var(--bg-card); padding: 12px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px var(--shadow); display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
         .ac-nav .nav-btn { background: var(--primary); color: white; border: none; padding: 9px 18px; border-radius: 5px; cursor: pointer; font-size: 0.95em; }
         .ac-nav .nav-btn:hover { background: var(--primary-hover); }
@@ -248,8 +266,8 @@
             #page-escala { display: none !important; }
             #page-aulas .ac-filters { display: none !important; }
             #page-aulas .ac-schedule-card { display: block !important; break-inside: avoid; margin-bottom: 12px; box-shadow: none; border: 1px solid #ddd; }
-            #page-aulas .ac-summary-card, #page-aulas .ac-legenda, #page-aulas .ac-ferias-card, #page-aulas .ac-timeline-card, #page-aulas .ac-congress { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
-            #page-aulas .ac-summary-header, #page-aulas .ac-month-header { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #page-aulas .ac-summary-card, #page-aulas .ac-legenda, #page-aulas .ac-ferias-card, #page-aulas .ac-timeline-card, #page-aulas .ac-congress, #page-ciclos .ac-summary-card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+            #page-aulas .ac-summary-header, #page-aulas .ac-month-header, #page-ciclos .ac-summary-header { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             #page-aulas .ac-badge, #page-aulas .ac-b-aula, #page-aulas .ac-b-caso, #page-aulas .ac-b-art, #page-aulas .ac-row-aula, #page-aulas .ac-row-skip,
             #page-aulas .ac-table th, #page-aulas .ac-summary-table th, #page-aulas .ac-summary-table tr:nth-child(even),
             #page-aulas .ac-ferias-bar-wrap, #page-aulas .ac-ferias-bar, #page-aulas .ac-phase-pre, #page-aulas .ac-phase-post { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -261,6 +279,7 @@
     <div class="page-tabs">
         <button class="page-tab active" onclick="switchPage('escala')">📅 Escala Geral</button>
         <button class="page-tab" onclick="switchPage('aulas')">📚 Aulas e Casos R2</button>
+        <button class="page-tab" onclick="switchPage('ciclos')">🔄 Ciclos R2</button>
     </div>
     <div id="page-escala" class="page-content active">
     <div class="header">
@@ -277,34 +296,52 @@
     <div class="filters">
         <h3>Filtrar por Residente:</h3>
         <div class="filter-group">
-            <label class="filter-item active">
-                <input type="checkbox" id="all" checked onchange="toggleAll(this)"> Todos
+            <label class="filter-item">
+                <input type="checkbox" id="all" onchange="toggleAll(this)"> Todos
             </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="ARTHUR" checked onchange="filterPessoa()"> ARTHUR
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="ARTHUR" onchange="filterPessoa()"> ARTHUR
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="FELIPE" checked onchange="filterPessoa()"> FELIPE
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="FELIPE" onchange="filterPessoa()"> FELIPE
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="FERNANDA" checked onchange="filterPessoa()"> FERNANDA
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="FERNANDA" onchange="filterPessoa()"> FERNANDA
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="JOAO" checked onchange="filterPessoa()"> JOAO
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="JOAO" onchange="filterPessoa()"> JOAO
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="LEONARDO" checked onchange="filterPessoa()"> LEONARDO
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="LEONARDO" onchange="filterPessoa()"> LEONARDO
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="MARINA" checked onchange="filterPessoa()"> MARINA
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="MARINA" onchange="filterPessoa()"> MARINA
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="THAUANNA" checked onchange="filterPessoa()"> THAUANNA
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="THAUANNA" onchange="filterPessoa()"> THAUANNA
         </label>
-        <label class="filter-item active">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" checked onchange="filterPessoa()"> VICTORIA
+        <label class="filter-item">
+            <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" onchange="filterPessoa()"> VICTORIA
         </label>
         </div>
+        <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
+            <strong>Legenda R2:</strong>
+            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#1565c0;border-radius:2px;display:inline-block;"></span> Aula</span>
+            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block;"></span> Caso</span>
+            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#e65100;border-radius:2px;display:inline-block;"></span> Artigo</span>
+            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:var(--bg-tertiary);border:1px dotted var(--border-color);border-radius:2px;display:inline-block;"></span> Sem Reunião</span>
+            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#00897b;border-radius:2px;display:inline-block;"></span> Atividade Ciclo</span>
+        </div>
+    </div>
+
+    <div class="activity-filters" id="activityFilters">
+        <h3>Filtrar Atividades do Ciclo R2:</h3>
+        <div style="margin-bottom:8px;">
+            <label class="activity-filter-item active">
+                <input type="checkbox" id="actFilterAll" checked onchange="toggleAllActivities(this)"> Todas
+            </label>
+        </div>
+        <div id="activityFilterGroups"></div>
     </div>
 
     <div class="nav-container">
@@ -7387,6 +7424,18 @@
         <div class="ac-ferias-card"><div class="ac-summary-header">🏖️ Férias dos Residentes</div><div id="acFeriasContainer" style="padding:8px 0"></div></div>
         <div class="ac-timeline-card"><div class="ac-summary-header">📅 Cronograma de Apresentações R2</div><div id="acTimelineContainer"></div></div>
     </div><!-- end page-aulas -->
+    <div id="page-ciclos" class="page-content">
+        <div class="ac-header"><h1>🔄 Mapeamento de Ciclos R2 (A-H)</h1><p>Escala de rotação obrigatória. O Ciclo <strong>H</strong> corresponde ao período de férias (30 dias).</p></div>
+        <div class="ac-summary-card">
+            <div class="ac-summary-header">Tabela de Rotação por Período</div>
+            <div style="overflow-x:auto">
+                <table class="ac-summary-table" id="ciclosTable">
+                    <thead><tr id="cTHead"></tr></thead>
+                    <tbody id="cTBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div><!-- end page-ciclos -->
     <script>
         let currentMonthIndex = 0;
         const months = document.querySelectorAll('.month-container');
@@ -7416,6 +7465,9 @@
             monthSelect.value = index;
             document.getElementById('prevBtn').disabled = index === 0;
             document.getElementById('nextBtn').disabled = index === months.length - 1;
+            if (document.getElementById('activityFilters').classList.contains('visible')) {
+                updateActivityFilterPanel();
+            }
         }
 
         function navigateMonth(delta) {
@@ -7522,7 +7574,7 @@
             document.querySelectorAll('.day[data-pessoas]').forEach(day => {
                 const pessoas = day.dataset.pessoas.split(',').filter(p => p);
                 const visible = pessoas.length === 0 || pessoas.some(p => selectedPessoas.includes(p));
-                day.querySelectorAll('.plantao, .evento, .folga, .ferias').forEach(el => {
+                day.querySelectorAll('.plantao, .evento, .folga, .ferias, .cal-ac-badge, .ps-badge, .cycle-badge').forEach(el => {
                     const elPessoas = el.dataset.pessoas ? el.dataset.pessoas.split(',') : [];
                     el.classList.toggle('hidden', elPessoas.length > 0 && !elPessoas.some(p => selectedPessoas.includes(p)));
                 });
@@ -7533,6 +7585,71 @@
                               document.querySelectorAll('.pessoa-filter:checked').length;
             allCheckbox.checked = allChecked;
             allCheckbox.parentElement.classList.toggle('active', allChecked);
+
+            // Show/hide activity filter panel
+            const anySelected = selectedPessoas.length > 0;
+            document.getElementById('activityFilters').classList.toggle('visible', anySelected);
+            if (anySelected) updateActivityFilterPanel();
+            filterActivity();
+        }
+
+        function updateActivityFilterPanel() {
+            const activeMonth = document.querySelector('.month-container.active');
+            if (!activeMonth) return;
+            const selectedPessoas = Array.from(document.querySelectorAll('.pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
+            const activities = new Set();
+            activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
+                if (selectedPessoas.includes(badge.dataset.pessoas)) {
+                    activities.add(badge.dataset.activity);
+                }
+            });
+            const groups = {'Ambulatorio':[], 'Cirurgia':[], 'PO':[], 'Outros':[]};
+            activities.forEach(act => {
+                if (act.startsWith('Amb.')) groups['Ambulatorio'].push(act);
+                else if (act.startsWith('Cir.')) groups['Cirurgia'].push(act);
+                else if (act === 'PO') groups['PO'].push(act);
+                else groups['Outros'].push(act);
+            });
+            const container = document.getElementById('activityFilterGroups');
+            let html = '';
+            for (const [label, acts] of Object.entries(groups)) {
+                if (acts.length === 0) continue;
+                html += `<span class="activity-filter-group-label">${label}:</span><div class="activity-filter-group">`;
+                acts.sort().forEach(act => {
+                    html += `<label class="activity-filter-item active"><input type="checkbox" class="act-filter" data-activity="${act}" checked onchange="filterActivity()"> ${act}</label>`;
+                });
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function filterActivity() {
+            const allActCbs = document.querySelectorAll('.act-filter');
+            if (allActCbs.length === 0) return;
+            const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.activity);
+            const allChecked = checkedActivities.length === allActCbs.length;
+            document.querySelectorAll('.cycle-badge').forEach(badge => {
+                const act = badge.dataset.activity;
+                // Only filter if badge is not already hidden by pessoa filter
+                if (!badge.classList.contains('hidden')) {
+                    badge.classList.toggle('hidden', !checkedActivities.includes(act));
+                }
+            });
+            const allCb = document.getElementById('actFilterAll');
+            if (allCb) {
+                allCb.checked = allChecked;
+                allCb.parentElement.classList.toggle('active', allChecked);
+            }
+            allActCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
+        }
+
+        function toggleAllActivities(checkbox) {
+            document.querySelectorAll('.act-filter').forEach(cb => {
+                cb.checked = checkbox.checked;
+                cb.parentElement.classList.toggle('active', checkbox.checked);
+            });
+            checkbox.parentElement.classList.toggle('active', checkbox.checked);
+            filterActivity();
         }
 
         function openIcsModal() {
@@ -7687,12 +7804,13 @@
             const artPri=['A','B','C','D','G'];
             raw.forEach(e=>{const d=e.date;if(d.getMonth()===2&&d.getFullYear()===2026){for(const pos of artPri){let found=false;for(const r of RES2){if(mPos2(r,d)===pos&&!onV2(r,d)){e.article=r;arC[r]++;found=true;break}}if(found)break}}});
             const ut={};
+            const cTgt={};RES2.forEach(r=>{cTgt[r]=(r==="João"||r==="Arthur")?2:1});
             const cSlots=[];raw.forEach((e,i)=>{if(e.caseType==='R2')cSlots.push({d:e.date,i})});
-            cSlots.forEach(s=>{const d=s.d,k=ds2(d);if(!ut[k])ut[k]=new Set();const e=raw[s.i];let ex=new Set(ut[k]);if(e.article)ex.add(e.article);let av=avM2(d,ex);if(!av.length)return;av.sort((a,b)=>{if(cC[a]!==cC[b])return cC[a]-cC[b];const ta=aC[a]+cC[a]+arC[a],tb=aC[b]+cC[b]+arC[b];if(ta!==tb)return ta-tb;return(d-(la[b]||new Date(2020,0,1)))-(d-(la[a]||new Date(2020,0,1)))});const ch=av[0];e.caseR2=ch;cC[ch]++;la[ch]=d;ut[k].add(ch)});
+            cSlots.forEach(s=>{const d=s.d,k=ds2(d);if(!ut[k])ut[k]=new Set();const e=raw[s.i];let ex=new Set(ut[k]);if(e.article)ex.add(e.article);let av=avM2(d,ex);if(!av.length)return;av.sort((a,b)=>{const ra=cTgt[a]-cC[a],rb=cTgt[b]-cC[b];if(ra!==rb)return rb-ra;if(cC[a]!==cC[b])return cC[a]-cC[b];const ta=aC[a]+cC[a]+arC[a],tb=aC[b]+cC[b]+arC[b];if(ta!==tb)return ta-tb;return(d-(la[b]||new Date(2020,0,1)))-(d-(la[a]||new Date(2020,0,1)))});const ch=av[0];e.caseR2=ch;cC[ch]++;la[ch]=d;ut[k].add(ch)});
             const aSlots=[];raw.forEach((e,i)=>{if(e.topicR&&r2A2(e.topicR,e.date))aSlots.push({d:e.date,i})});
             const aN=aSlots.length;const tAll=Object.values(arC).reduce((a,b)=>a+b,0)+Object.values(cC).reduce((a,b)=>a+b,0)+aN;
             const bt=Math.floor(tAll/RES2.length),ex3=tAll%RES2.length;
-            const rbl=[...RES2].sort((a,b)=>(cC[a]+arC[a])-(cC[b]+arC[b])||(cC[a]-cC[b]));
+            const rbl=[...RES2].sort((a,b)=>(cC[b]+arC[b])-(cC[a]+arC[a])||(cC[b]-cC[a]));
             const aT={};rbl.forEach((r,i)=>{const na=cC[r]+arC[r];aT[r]=Math.max(0,(i<ex3?bt+1:bt)-na)});
             aSlots.forEach(s=>{const d=s.d,k=ds2(d);if(!ut[k])ut[k]=new Set();const e=raw[s.i];let ex=new Set(ut[k]);if(e.article)ex.add(e.article);let av=avM2(d,ex);if(!av.length)return;av.sort((a,b)=>{const ra=aT[a]-aC[a],rb=aT[b]-aC[b];if(ra!==rb)return rb-ra;const ta=aC[a]+cC[a]+arC[a],tb=aC[b]+cC[b]+arC[b];if(ta!==tb)return ta-tb;return(d-(la[b]||new Date(2020,0,1)))-(d-(la[a]||new Date(2020,0,1)))});const ch=av[0];e.aulaR2=ch;aC[ch]++;la[ch]=d;ut[k].add(ch)});
             const ms=new Set(raw.map(e=>ds2(e.date))),full=[];
@@ -7742,6 +7860,275 @@
         document.querySelectorAll('.acpf').forEach(c=>c.parentElement.classList.toggle('active',c.checked));
         const a=document.getElementById('acFilterAll');a.checked=sel.length===RES2.length;a.parentElement.classList.toggle('active',a.checked);
         document.querySelectorAll('.ac-table tbody tr[data-acpessoas]').forEach(row=>{const p=row.dataset.acpessoas.split(',').filter(Boolean);if(!p.length||sel.length===RES2.length){row.classList.remove('ac-row-hl');row.style.opacity=''}else if(p.some(x=>sel.includes(x))){row.classList.add('ac-row-hl');row.style.opacity=''}else{row.classList.remove('ac-row-hl');row.style.opacity='0.35'}})};
+        
+        // --- INJECT SCHEDULE INTO MAIN CALENDAR ---
+        (function injectAulasIntoCalendar() {
+            const {entries} = acBuildSchedule();
+            entries.forEach(e => {
+                const dateStr = ds2(e.date);
+                const cell = document.querySelector(`.day[data-date="${dateStr}"]`);
+                if (!cell) return;
+                
+                let html = '';
+                let ps = new Set(cell.dataset.pessoas ? cell.dataset.pessoas.split(',').map(x=>x.trim()).filter(Boolean) : []);
+                
+                if (e.skip) {
+                    html += `<span class="cal-ac-badge cal-ac-skip">❌ S/ Reunião</span>`;
+                } else {
+                    if (e.aulaR2) {
+                        const name = e.aulaR2.toUpperCase();
+                        html += `<span class="cal-ac-badge cal-ac-aula" data-pessoas="${name}">📚 ${e.aulaR2}</span>`;
+                        ps.add(name);
+                    }
+                    if (e.caseR2) {
+                        const name = e.caseR2.toUpperCase();
+                        html += `<span class="cal-ac-badge cal-ac-caso" data-pessoas="${name}">🏥 ${e.caseR2}</span>`;
+                        ps.add(name);
+                    }
+                    if (e.article) {
+                        const name = e.article.toUpperCase();
+                        html += `<span class="cal-ac-badge cal-ac-art" data-pessoas="${name}">📄 ${e.article}</span>`;
+                        ps.add(name);
+                    }
+                }
+                
+                if (html) {
+                    cell.innerHTML += html;
+                    cell.dataset.pessoas = Array.from(ps).join(',');
+                }
+            });
+            // Re-apply global filter so current selection applies to new badges
+            if(typeof filterPessoa === 'function') filterPessoa();
+        })();
+        // --- INJECT PS (PLANTÃO PRONTO-SOCORRO) BADGES INTO MAIN CALENDAR ---
+        (function injectPSBadges() {
+            const CYCLES_AH = [
+                ["2026-05-04","2026-06-07"], ["2026-06-08","2026-07-12"],
+                ["2026-07-13","2026-08-16"], ["2026-08-17","2026-09-20"],
+                ["2026-09-21","2026-10-25"], ["2026-10-26","2026-11-29"],
+                ["2026-11-30","2027-01-17"], ["2027-01-18","2027-02-28"]
+            ];
+            // Weekday PS mapping per cycle: {dayOfWeek: hours}
+            // JS: 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+            const PS_DAYS = {
+                'A': {},
+                'B': {3: '09-21h'},
+                'C': {1: '09-21h'},
+                'D': {4: '07-11h', 5: '09-21h'},
+                'E': {1: '07-19h'},
+                'F': {2: '09-21h'},
+                'G': {4: '09-21h'},
+                'H': {}
+            };
+            const psMI = {"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
+            const psResidents = Object.keys(psMI);
+            const psCycle = (r, pIdx) => "ABCDEFGH"[(psMI[r] + pIdx) % 8];
+
+            // Iterate each period
+            CYCLES_AH.forEach((period, pIdx) => {
+                const pStart = pd2(period[0]), pEnd = pd2(period[1]);
+                // For each resident, determine their cycle in this period
+                psResidents.forEach(r => {
+                    const cycle = psCycle(r, pIdx);
+                    const dayMap = PS_DAYS[cycle];
+                    const dayKeys = Object.keys(dayMap).map(Number);
+                    if (dayKeys.length === 0) return;
+                    // Skip if on vacation
+                    if (VAC2[r]) {
+                        var vS = pd2(VAC2[r][0]), vE = pd2(VAC2[r][1]);
+                    }
+                    // Walk through each date in this period
+                    for (let d = new Date(pStart); d <= pEnd; d.setDate(d.getDate() + 1)) {
+                        const dow = d.getDay();
+                        if (!dayKeys.includes(dow)) continue;
+                        // Skip vacation days
+                        if (VAC2[r] && d >= vS && d <= vE) continue;
+                        const dateStr = ds2(d);
+                        const cell = document.querySelector(`.day[data-date="${dateStr}"]`);
+                        if (!cell) continue;
+                        // Skip feriados, recessos, carnaval, cbo (plantões especiais já definidos)
+                        if (cell.classList.contains('feriado') || cell.classList.contains('recesso') || cell.classList.contains('carnaval') || cell.classList.contains('cbo')) continue;
+                        const hours = dayMap[dow];
+                        const nameUp = r.toUpperCase();
+                        const badge = document.createElement('span');
+                        badge.className = 'ps-badge';
+                        badge.dataset.pessoas = nameUp;
+                        badge.textContent = `${nameUp} (PS ${hours})`;
+                        cell.appendChild(badge);
+                        // Update data-pessoas for filtering
+                        let ps = new Set(cell.dataset.pessoas ? cell.dataset.pessoas.split(',').map(x=>x.trim()).filter(Boolean) : []);
+                        ps.add(nameUp);
+                        cell.dataset.pessoas = Array.from(ps).join(',');
+                    }
+                });
+            });
+            // Re-apply filter
+            if (typeof filterPessoa === 'function') filterPessoa();
+        })();
+
+        // --- INJECT CYCLE ACTIVITIES BADGES INTO MAIN CALENDAR ---
+        (function injectCycleActivities() {
+            const CYCLES_AH = [
+                ["2026-05-04","2026-06-07"], ["2026-06-08","2026-07-12"],
+                ["2026-07-13","2026-08-16"], ["2026-08-17","2026-09-20"],
+                ["2026-09-21","2026-10-25"], ["2026-10-26","2026-11-29"],
+                ["2026-11-30","2027-01-17"], ["2027-01-18","2027-02-28"]
+            ];
+            const cMI = {"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
+            const cCycle = (r, pIdx) => "ABCDEFGH"[(cMI[r] + pIdx) % 8];
+            const cResidents = Object.keys(cMI);
+
+            const PS_DAYS = {
+                'A': {}, 'B': {3:'09-21h'}, 'C': {1:'09-21h'},
+                'D': {4:'07-11h', 5:'09-21h'}, 'E': {1:'07-19h'},
+                'F': {2:'09-21h'}, 'G': {4:'09-21h'}, 'H': {}
+            };
+
+            function isSlotPS(cycle, dow, slot) {
+                const ps = PS_DAYS[cycle];
+                if (!ps || !ps[dow]) return false;
+                const h = ps[dow];
+                if (h === '09-21h' || h === '07-19h') return true;
+                if (h === '07-11h' && slot === 'AM') return true;
+                return false;
+            }
+
+            const CYCLE_ACTIVITIES = {
+                'A': [
+                    {day:1, slot:'AM', act:'Amb. Plastica'}, {day:1, slot:'PM', act:'PC Plastica'},
+                    {day:2, slot:'AM', act:'Amb. Glaucoma'}, {day:2, slot:'PM', act:'Amb. Plastica'},
+                    {day:3, slot:'AM', act:'Cir. Catarata'}, {day:3, slot:'PM', act:'Amb. Retina'},
+                    {day:4, slot:'AM', act:'Cir. Glaucoma'}, {day:4, slot:'PM', act:'Amb. Plastica'},
+                    {day:5, slot:'AM', act:'PO'}, {day:5, slot:'PM', act:'Amb. Neuroftalmo'}
+                ],
+                'B': [
+                    {day:1, slot:'AM', act:'Amb. Catarata'}, {day:1, slot:'PM', act:'Amb. Triagem Geral'},
+                    {day:2, slot:'AM', act:'Amb. Lentes de Contato'}, {day:2, slot:'PM', act:'Amb. Cornea'},
+                    {day:4, slot:'AM', act:'Amb. Cornea'}, {day:4, slot:'PM', act:'Cir. Catarata'},
+                    {day:5, slot:'AM', act:'PO'}, {day:5, slot:'PM', act:'Amb. Retina'}
+                ],
+                'C': [
+                    {day:2, slot:'AM', act:'PO'}, {day:2, slot:'PM', act:'Amb. Catarata'},
+                    {day:3, slot:'AM', act:'Amb. Glaucoma'}, {day:3, slot:'PM', act:'Cir. Catarata'},
+                    {day:4, slot:'AM', act:'Amb. Catarata'}, {day:4, slot:'PM', act:'PC Cornea'},
+                    {day:5, slot:'AM', act:'Cir. Catarata'}, {day:5, slot:'PM', act:'Amb. VSN'}
+                ],
+                'D': [
+                    {day:1, slot:'AM', act:'YAG LASER'}, {day:1, slot:'PM', act:'Amb. Triagem Geral'},
+                    {day:2, slot:'AM', act:'PO'}, {day:2, slot:'PM', act:'Amb. Lentes de Contato'},
+                    {day:3, slot:'AM', act:'Amb. Retina'}, {day:3, slot:'PM', act:'Amb. Oncologia'},
+                    {day:4, slot:'PM', act:'Cir. Catarata'}
+                ],
+                'E': [
+                    {day:2, slot:'AM', act:'Amb. Retina'}, {day:2, slot:'PM', act:'PO'},
+                    {day:3, slot:'AM', act:'Amb. Refrativa'}, {day:3, slot:'PM', act:'Cornea'},
+                    {day:4, slot:'AM', act:'Cir. Catarata'}, {day:4, slot:'PM', act:'Amb. Glaucoma'},
+                    {day:5, slot:'AM', act:'Amb. Cornea'}, {day:5, slot:'PM', act:'Cir. Catarata'}
+                ],
+                'F': [
+                    {day:1, slot:'AM', act:'Amb. Estrabismo'}, {day:1, slot:'PM', act:'Amb. Estrabismo/PO'},
+                    {day:3, slot:'AM', act:'PO'}, {day:3, slot:'PM', act:'Cir. Catarata'},
+                    {day:4, slot:'AM', act:'Amb. Uvea'}, {day:4, slot:'PM', act:'Cir. Glaucoma R2'},
+                    {day:5, slot:'AM', act:'Amb. Glaucoma'}, {day:5, slot:'PM', act:'Amb. Estrabismo'}
+                ],
+                'G': [
+                    {day:1, slot:'AM', act:'Triagem Geral'}, {day:1, slot:'PM', act:'Amb. Triagem Geral c/ R1'},
+                    {day:2, slot:'AM', act:'Amb. Triagem Geral'}, {day:2, slot:'PM', act:'Oftalmopediatria'},
+                    {day:3, slot:'AM', act:'PO'}, {day:3, slot:'PM', act:'Amb. Catarata'},
+                    {day:5, slot:'AM', act:'Amb. VSN'}, {day:5, slot:'PM', act:'Cir. Catarata'}
+                ],
+                'H': [
+                    {day:1, slot:'AM', act:'CEO'}, {day:1, slot:'PM', act:'CEO'},
+                    {day:2, slot:'AM', act:'Agenda extra'}, {day:2, slot:'PM', act:'Agenda extra'},
+                    {day:3, slot:'AM', act:'PO'}, {day:3, slot:'PM', act:'Cir. Refrativa Excimer'},
+                    {day:4, slot:'AM', act:'Agenda extra'}, {day:4, slot:'PM', act:'Agenda extra'},
+                    {day:5, slot:'AM', act:'Agenda extra'}, {day:5, slot:'PM', act:'CEO'}
+                ]
+            };
+
+            CYCLES_AH.forEach((period, pIdx) => {
+                const pStart = pd2(period[0]), pEnd = pd2(period[1]);
+                cResidents.forEach(r => {
+                    const cycle = cCycle(r, pIdx);
+                    // H cycle now has activities (CEO, Agenda extra, etc.)
+                    const acts = CYCLE_ACTIVITIES[cycle];
+                    if (!acts) return;
+                    // Vacation dates
+                    let vS, vE;
+                    if (VAC2[r]) { vS = pd2(VAC2[r][0]); vE = pd2(VAC2[r][1]); }
+                    // Build day->activities lookup
+                    const dayActs = {};
+                    acts.forEach(a => {
+                        if (!dayActs[a.day]) dayActs[a.day] = [];
+                        dayActs[a.day].push(a);
+                    });
+                    const dayKeys = Object.keys(dayActs).map(Number);
+                    for (let d = new Date(pStart); d <= pEnd; d.setDate(d.getDate() + 1)) {
+                        const dow = d.getDay();
+                        if (dow === 0 || dow === 6) continue; // skip weekends
+                        if (!dayKeys.includes(dow)) continue;
+                        if (VAC2[r] && d >= vS && d <= vE) continue; // skip vacation
+                        const dateStr = ds2(d);
+                        const cell = document.querySelector(`.day[data-date="${dateStr}"]`);
+                        if (!cell) continue;
+                        if (cell.classList.contains('feriado') || cell.classList.contains('recesso') || cell.classList.contains('carnaval') || cell.classList.contains('cbo')) continue;
+                        const nameUp = r.toUpperCase();
+                        dayActs[dow].forEach(a => {
+                            if (isSlotPS(cycle, dow, a.slot)) return; // skip PS-conflicting slots
+                            const badge = document.createElement('span');
+                            badge.className = 'cycle-badge';
+                            badge.dataset.pessoas = nameUp;
+                            badge.dataset.activity = a.act;
+                            badge.textContent = `${nameUp} (${a.act})`;
+                            cell.appendChild(badge);
+                        });
+                        // Update data-pessoas
+                        let ps = new Set(cell.dataset.pessoas ? cell.dataset.pessoas.split(',').map(x=>x.trim()).filter(Boolean) : []);
+                        ps.add(nameUp);
+                        cell.dataset.pessoas = Array.from(ps).join(',');
+                    }
+                });
+            });
+            if (typeof filterPessoa === 'function') filterPessoa();
+        })();
+
+        // --- INJECT CICLOS TABLE ---
+        (function renderCiclosTable() {
+            const CYCLES_AH = [
+                ["2026-05-04","2026-06-07"], ["2026-06-08","2026-07-12"],
+                ["2026-07-13","2026-08-16"], ["2026-08-17","2026-09-20"],
+                ["2026-09-21","2026-10-25"], ["2026-10-26","2026-11-29"],
+                ["2026-11-30","2027-01-17"], ["2027-01-18","2027-02-28"]
+            ];
+            const MI2 = {"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
+            const ahCycle = (r, pIdx) => "ABCDEFGH"[(MI2[r] + pIdx) % 8];
+
+            const thead = document.getElementById('cTHead');
+            const tbody = document.getElementById('cTBody');
+            if(!thead || !tbody) return;
+            
+            let h_row = '<th style="text-align:left; min-width:100px;">Residente</th>';
+            CYCLES_AH.forEach((p, i) => {
+                const s = p[0].split('-'), e = p[1].split('-');
+                h_row += `<th>Período ${i+1}<br><span style="font-size:0.8em; font-weight:normal;">${s[2]}/${s[1]} a ${e[2]}/${e[1]}</span></th>`;
+            });
+            thead.innerHTML = h_row;
+            
+            let b_html = '';
+            RES2.forEach(r => {
+                b_html += `<tr><td class="name"><strong>${r}</strong></td>`;
+                CYCLES_AH.forEach((p, i) => {
+                    const c = ahCycle(r, i);
+                    const isVacay = c === 'H';
+                    const bg = isVacay ? 'background:rgba(46,125,50,0.15); font-weight:bold; color:var(--text-primary);' : '';
+                    const label = isVacay ? 'H 🏖️' : c;
+                    b_html += `<td style="text-align:center; ${bg}">${label}</td>`;
+                });
+                b_html += `</tr>`;
+            });
+            tbody.innerHTML = b_html;
+        })();
+
         })();
     </script>
 </body>
