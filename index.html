@@ -116,6 +116,7 @@
         .evento.extra-ps { background: #f44336; color: white; }
         .ps-badge { background: var(--primary); color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.75em; margin-bottom: 3px; display: inline-block; }
         .cycle-badge { background: #00897b; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-bottom: 2px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .cycle-badge.badge-livre { background: #4caf50; font-weight: bold; }
         .activity-filters { background: var(--bg-card); padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); display: none; }
         .activity-filters.visible { display: block; }
         .activity-filters h3 { margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9em; }
@@ -132,7 +133,7 @@
         .folga-toggle.visible { display: block; }
         .folga-toggle label { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary); }
         .folga-toggle input { cursor: pointer; width: 18px; height: 18px; }
-        .hidden { display: none !important; }
+        .hidden-pessoa, .hidden-activity { display: none !important; }
         .tabela-container { background: var(--bg-card); border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); overflow-x: auto; display: none; }
         .tabela-container.visible { display: block; }
         .problemas-container { background: var(--problemas-bg); border: 2px solid var(--problemas-border); border-radius: 8px; margin-bottom: 20px; padding: 15px; display: none; }
@@ -260,6 +261,21 @@
         .ac-phase-pre { background: var(--bg-tertiary); color: var(--text-muted); }
         .ac-phase-post { background: #e8f5e9; color: #2e7d32; }
         @media (prefers-color-scheme: dark) { .ac-phase-post { background: #1a3d1a; color: #81c784; } }
+        .ciclo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 16px; }
+        .ciclo-card { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .ciclo-card-header { background: var(--primary); color: white; padding: 10px 14px; font-weight: bold; font-size: 0.95em; display: flex; justify-content: space-between; align-items: center; }
+        .ciclo-card-header .ciclo-ps-info { font-weight: normal; font-size: 0.82em; opacity: 0.9; }
+        .ciclo-card table { width: 100%; border-collapse: collapse; }
+        .ciclo-card th, .ciclo-card td { padding: 7px 6px; text-align: center; border: 1px solid var(--border-color); font-size: 0.82em; color: var(--text-primary); }
+        .ciclo-card th { background: var(--bg-secondary); font-weight: 600; }
+        .ciclo-card td.ciclo-ps { background: #fff3e0; color: #e65100; font-weight: 600; font-size: 0.78em; }
+        @media (prefers-color-scheme: dark) { .ciclo-card td.ciclo-ps { background: #3e2723; color: #ffab40; } }
+        .ciclo-card td.ciclo-act-cir { background: #e8f5e9; font-weight: 500; }
+        @media (prefers-color-scheme: dark) { .ciclo-card td.ciclo-act-cir { background: #1b3a1b; } }
+        .ciclo-card td.ciclo-act-po { background: #e3f2fd; font-weight: 500; }
+        @media (prefers-color-scheme: dark) { .ciclo-card td.ciclo-act-po { background: #1a2a3d; } }
+        .ciclo-card td.ciclo-slot-label { background: var(--bg-secondary); font-weight: 600; text-align: left; padding-left: 10px; white-space: nowrap; }
+        @media (max-width: 600px) { .ciclo-grid { grid-template-columns: 1fr; } }
         @media print {
             .page-tabs { display: none !important; }
             .page-content { display: block !important; }
@@ -7435,6 +7451,18 @@
                 </table>
             </div>
         </div>
+        <div class="ac-summary-card" id="ciclos2-section">
+            <div class="ac-summary-header">Atividades Semanais por Ciclo</div>
+            <div style="padding:12px">
+                <div class="ciclo-grid" id="cicloCardsContainer"></div>
+            </div>
+        </div>
+        <div class="ac-summary-card" id="miniciclos-section">
+            <div class="ac-summary-header">Atividades Semanais por Miniciclo (01/03–03/05/2026)</div>
+            <div style="padding:12px">
+                <div class="ciclo-grid" id="minicicloCardsContainer"></div>
+            </div>
+        </div>
     </div><!-- end page-ciclos -->
     <script>
         let currentMonthIndex = 0;
@@ -7467,6 +7495,7 @@
             document.getElementById('nextBtn').disabled = index === months.length - 1;
             if (document.getElementById('activityFilters').classList.contains('visible')) {
                 updateActivityFilterPanel();
+                filterActivity();
             }
         }
 
@@ -7576,7 +7605,7 @@
                 const visible = pessoas.length === 0 || pessoas.some(p => selectedPessoas.includes(p));
                 day.querySelectorAll('.plantao, .evento, .folga, .ferias, .cal-ac-badge, .ps-badge, .cycle-badge').forEach(el => {
                     const elPessoas = el.dataset.pessoas ? el.dataset.pessoas.split(',') : [];
-                    el.classList.toggle('hidden', elPessoas.length > 0 && !elPessoas.some(p => selectedPessoas.includes(p)));
+                    el.classList.toggle('hidden-pessoa', elPessoas.length > 0 && !elPessoas.some(p => selectedPessoas.includes(p)));
                 });
             });
 
@@ -7597,6 +7626,10 @@
             const activeMonth = document.querySelector('.month-container.active');
             if (!activeMonth) return;
             const selectedPessoas = Array.from(document.querySelectorAll('.pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
+            // Preserve unchecked state before rebuilding
+            const previouslyUnchecked = new Set(
+                Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.activity)
+            );
             const activities = new Set();
             activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
                 if (selectedPessoas.includes(badge.dataset.pessoas)) {
@@ -7616,7 +7649,10 @@
                 if (acts.length === 0) continue;
                 html += `<span class="activity-filter-group-label">${label}:</span><div class="activity-filter-group">`;
                 acts.sort().forEach(act => {
-                    html += `<label class="activity-filter-item active"><input type="checkbox" class="act-filter" data-activity="${act}" checked onchange="filterActivity()"> ${act}</label>`;
+                    const isChecked = !previouslyUnchecked.has(act);
+                    const checkedAttr = isChecked ? 'checked' : '';
+                    const activeClass = isChecked ? 'active' : '';
+                    html += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-filter" data-activity="${act}" ${checkedAttr} onchange="filterActivity()"> ${act}</label>`;
                 });
                 html += '</div>';
             }
@@ -7625,15 +7661,14 @@
 
         function filterActivity() {
             const allActCbs = document.querySelectorAll('.act-filter');
-            if (allActCbs.length === 0) return;
+            if (allActCbs.length === 0) {
+                document.querySelectorAll('.cycle-badge.hidden-activity').forEach(b => b.classList.remove('hidden-activity'));
+                return;
+            }
             const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.activity);
             const allChecked = checkedActivities.length === allActCbs.length;
             document.querySelectorAll('.cycle-badge').forEach(badge => {
-                const act = badge.dataset.activity;
-                // Only filter if badge is not already hidden by pessoa filter
-                if (!badge.classList.contains('hidden')) {
-                    badge.classList.toggle('hidden', !checkedActivities.includes(act));
-                }
+                badge.classList.toggle('hidden-activity', !checkedActivities.includes(badge.dataset.activity));
             });
             const allCb = document.getElementById('actFilterAll');
             if (allCb) {
@@ -7765,7 +7800,7 @@
         // === AULAS/CASOS ENGINE ===
         (function(){
         const RES2=["Felipe","João","Arthur","Leonardo","Marina","Fernanda","Victoria","Thauanna"];
-        const VAC2={"Felipe":["2026-05-08","2026-06-06"],"João":["2026-01-18","2026-02-16"],"Arthur":["2026-06-12","2026-07-11"],"Leonardo":["2026-09-25","2026-10-24"],"Marina":["2026-10-26","2026-11-24"],"Fernanda":["2026-11-30","2026-12-29"],"Victoria":["2026-08-21","2026-09-19"],"Thauanna":["2026-07-17","2026-08-15"]};
+        const VAC2={"Felipe":["2026-05-08","2026-06-06"],"João":["2027-01-18","2027-02-16"],"Arthur":["2026-06-12","2026-07-11"],"Leonardo":["2026-09-25","2026-10-24"],"Marina":["2026-10-26","2026-11-24"],"Fernanda":["2026-11-30","2026-12-29"],"Victoria":["2026-08-21","2026-09-19"],"Thauanna":["2026-07-17","2026-08-15"]};
         const TOP2=[["Exames I: Angiofluoresceinografia",3],["Exames II: OCT",3],["Exames III: OCTa",3],["ERG campo total e multifocal",3],["Ret. diabética: classif. e fatores de risco",2],["Ret. diabética: tratamentos clínicos",3],["Ret. diabética: tratamentos cirúrgicos",3],["Retinopatia Hipertensiva",2],["DMRI classificação e fisiopatologia",2],["DMRI tratamento",3],["Diagn Dif. de DMRI (RAP e kearns sayre)",3],["Teleangiectasias parafoveais (Mactel)",3],["OVCR I – diagnóstico e fatores prognósticos",2],["OVCR II – tratamentos",3],["ORVR I – diagnóstico e fatores prognósticos",2],["ORVR – tratamentos",3],["OACR – diagnóstico e tratamento",2],["Farmacologia: corticoide e antiangiogênicos",3],["Membrana epirretiniana",2],["Tração vitreomacular",2],["Trauma I – tipos e fatores prognósticos",2],["Trauma II – manejo e tratamento",3],["Maculopatias tóxicas",2],["Buraco Macular",3],["Endoftalmites",2],["Distrofias maculares",3],["Coroidopatia poliploidal",3],["DR: Classificação e avaliação",2],["DR: tratamento",3],["Síndrome de Irvine-Gass",2],["Retinose Pigmentar",2],["Coriorretinopatia Serosa Central",2],["Retinopatia da prematuridade",3],["Retinites virais (CMV e Herpes)",3],["Laserterapia. Tipos e indicações",3],["Como realizar clinical trials",3]];
         const CP2=["Fellow","Fellow","R3","R2"],CQ2=["Fellow","Fellow","R2","R1"];
         const HOL2=new Set(["2026-04-21"]);
@@ -7845,7 +7880,7 @@
             sh+='<tr><td class="name">'+r+'</td><td>'+a+'</td><td>'+cc+'</td><td>'+ar+'</td><td><strong>'+(a+cc+ar)+'</strong></td><td style="font-size:0.8em">'+v+'</td></tr>'});
             sh+='<tr class="total-row"><td class="name">Total</td><td>'+ta+'</td><td>'+tc+'</td><td>'+tar+'</td><td><strong>'+(ta+tc+tar)+'</strong></td><td></td></tr>';
             sb.innerHTML=sh;
-            const fd=document.getElementById('acFeriasContainer');const ys=new Date(2026,2,1),ye=new Date(2027,2,7),td2x=(ye-ys)/864e5;let fh='';
+            const fd=document.getElementById('acFeriasContainer');const ys=new Date(2026,0,1),ye=new Date(2027,2,7),td2x=(ye-ys)/864e5;let fh='';
             RES2.forEach(r=>{if(!VAC2[r])return;const vs=pd2(VAC2[r][0]),ve=pd2(VAC2[r][1]);const l=((vs-ys)/864e5)/td2x*100,w=((ve-vs)/864e5)/td2x*100;fh+='<div class="ac-ferias-row"><span class="ac-ferias-name">'+r+'</span><div class="ac-ferias-bar-wrap"><div class="ac-ferias-bar" style="left:'+l+'%;width:'+w+'%"></div></div><span class="ac-ferias-label">'+fM2(vs)+' – '+fM2(ve)+'</span></div>'});
             fd.innerHTML=fh;
             const tl=document.getElementById('acTimelineContainer');let th2='';
@@ -8077,9 +8112,11 @@
                             if (isSlotPS(cycle, dow, a.slot)) return; // skip PS-conflicting slots
                             const badge = document.createElement('span');
                             badge.className = 'cycle-badge';
+                            if (a.act === 'Livre' || a.act === 'PO') badge.classList.add('badge-livre');
                             badge.dataset.pessoas = nameUp;
                             badge.dataset.activity = a.act;
-                            badge.textContent = `${nameUp} (${a.act})`;
+                            const emoji = a.slot === 'AM' ? '☀️' : '🌙';
+                            badge.textContent = `${emoji} ${nameUp} (${a.act})`;
                             cell.appendChild(badge);
                         });
                         // Update data-pessoas
@@ -8088,6 +8125,116 @@
                         cell.dataset.pessoas = Array.from(ps).join(',');
                     }
                 });
+            });
+            if (typeof filterPessoa === 'function') filterPessoa();
+        })();
+
+        // --- INJECT MINICICLO ACTIVITIES ---
+        (function injectMinicicloActivities() {
+            const MINI_REF = new Date(2026, 2, 8);   // March 8, 2026 — must match MR2 for rotation alignment
+            const MINI_LOOP_START = new Date(2026, 2, 1); // March 1, 2026 (first day of miniciclos)
+            const MINI_END = new Date(2026, 4, 3);   // May 3, 2026
+            const MINI_ORDER = {"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
+            const MINI_RESIDENTS = Object.keys(MINI_ORDER);
+
+            const MINI_CYCLE_ACTIVITIES = {
+                'A': [
+                    {day:1, slot:'AM', act:'Amb. Plastica'}, {day:1, slot:'PM', act:'PC Plastica'},
+                    {day:2, slot:'AM', act:'Amb. Glaucoma'}, {day:2, slot:'PM', act:'Amb. Plastica'},
+                    {day:3, slot:'AM', act:'Cir. Catarata'}, {day:3, slot:'PM', act:'Amb. Retina'},
+                    {day:4, slot:'AM', act:'Cir. Glaucoma'}, {day:4, slot:'PM', act:'Amb. Plastica'},
+                    {day:5, slot:'AM', act:'Livre'}, {day:5, slot:'PM', act:'Amb. Neuroftalmo'}
+                ],
+                'B': [
+                    {day:1, slot:'AM', act:'Amb. Catarata'}, {day:1, slot:'PM', act:'Amb. Triagem Geral'},
+                    {day:2, slot:'AM', act:'Amb. Lentes de Contato'}, {day:2, slot:'PM', act:'Amb. Cornea'},
+                    {day:4, slot:'AM', act:'Livre'}, {day:4, slot:'PM', act:'Cir. Catarata'},
+                    {day:5, slot:'AM', act:'Amb. VSN/PO'}, {day:5, slot:'PM', act:'Amb. Retina'}
+                ],
+                'C': [
+                    {day:1, slot:'AM', act:'Yag/PO'}, {day:1, slot:'PM', act:'Livre'},
+                    {day:2, slot:'AM', act:'Amb. Retina'}, {day:2, slot:'PM', act:'Amb. Catarata'},
+                    {day:3, slot:'AM', act:'Amb. Glaucoma'}, {day:3, slot:'PM', act:'Cir. Catarata'},
+                    {day:4, slot:'AM', act:'Amb. Catarata'}, {day:4, slot:'PM', act:'Cir. Catarata'}
+                ],
+                'D': [
+                    {day:1, slot:'AM', act:'Livre'}, {day:1, slot:'PM', act:'Amb. Triagem Geral'},
+                    {day:2, slot:'AM', act:'Amb. Triagem Geral'}, {day:2, slot:'PM', act:'Livre'},
+                    {day:3, slot:'AM', act:'Amb. Retina'}, {day:3, slot:'PM', act:'Amb. Oncologia'},
+                    {day:4, slot:'AM', act:'Amb. Cornea'}, {day:4, slot:'PM', act:'PC Cornea'},
+                    {day:5, slot:'AM', act:'Cir. Catarata'}, {day:5, slot:'PM', act:'Amb. VSN/PO'}
+                ],
+                'E': [
+                    {day:2, slot:'AM', act:'Livre'}, {day:2, slot:'PM', act:'Amb. Lentes de Contato'},
+                    {day:3, slot:'AM', act:'PO'}, {day:3, slot:'PM', act:'Cornea'},
+                    {day:4, slot:'AM', act:'Cir. Catarata'}, {day:4, slot:'PM', act:'Amb. Glaucoma'},
+                    {day:5, slot:'AM', act:'Amb. Cornea'}, {day:5, slot:'PM', act:'Cir. Catarata'}
+                ],
+                'F': [
+                    {day:1, slot:'AM', act:'Amb. Estrabismo'}, {day:1, slot:'PM', act:'Amb. Estrabismo/PO'},
+                    {day:3, slot:'AM', act:'Livre'}, {day:3, slot:'PM', act:'Cir. Catarata'},
+                    {day:4, slot:'AM', act:'Amb. Uvea'}, {day:4, slot:'PM', act:'Cir. Glaucoma R2 R3'},
+                    {day:5, slot:'AM', act:'Amb. Glaucoma'}, {day:5, slot:'PM', act:'Amb. Estrabismo'}
+                ],
+                'G': [
+                    {day:1, slot:'AM', act:'Triagem Geral'}, {day:1, slot:'PM', act:'Triagem Geral'},
+                    {day:2, slot:'AM', act:'Amb. Triagem Geral'}, {day:2, slot:'PM', act:'Oftalmopediatria'},
+                    {day:3, slot:'AM', act:'Amb. Refrativa'}, {day:3, slot:'PM', act:'Amb. Catarata'},
+                    {day:5, slot:'AM', act:'Livre'}, {day:5, slot:'PM', act:'Cir. Catarata'}
+                ],
+                'H': [
+                    {day:1, slot:'AM', act:'PS 9-21h'}, {day:1, slot:'PM', act:'PS 9-21h'},
+                    {day:2, slot:'AM', act:'PS 9-21h'}, {day:2, slot:'PM', act:'PS 9-21h'},
+                    {day:3, slot:'AM', act:'PS 9-21h'}, {day:3, slot:'PM', act:'PS 9-21h'},
+                    {day:4, slot:'AM', act:'PS 9-21h'}, {day:4, slot:'PM', act:'PS 9-21h'},
+                    {day:5, slot:'AM', act:'PS 9-21h'}, {day:5, slot:'PM', act:'PS 9-21h'}
+                ]
+            };
+
+            function miniPos(r, d) {
+                const sun = new Date(d);
+                sun.setDate(d.getDate() - d.getDay());
+                const w = Math.round((sun - MINI_REF) / (7 * 864e5));
+                return "ABCDEFGH"[((MINI_ORDER[r] + w) % 8 + 8) % 8];
+            }
+
+            MINI_RESIDENTS.forEach(r => {
+                let vS, vE;
+                if (VAC2[r]) { vS = pd2(VAC2[r][0]); vE = pd2(VAC2[r][1]); }
+
+                for (let d = new Date(MINI_LOOP_START); d <= MINI_END; d.setDate(d.getDate() + 1)) {
+                    const dow = d.getDay();
+                    if (dow === 0 || dow === 6) continue;
+                    if (VAC2[r] && d >= vS && d <= vE) continue;
+
+                    const dateStr = ds2(d);
+                    const cell = document.querySelector(`.day[data-date="${dateStr}"]`);
+                    if (!cell) continue;
+                    if (cell.classList.contains('feriado') || cell.classList.contains('recesso') || cell.classList.contains('carnaval') || cell.classList.contains('cbo')) continue;
+
+                    const mc = miniPos(r, d);
+                    const acts = MINI_CYCLE_ACTIVITIES[mc];
+                    if (!acts) continue;
+
+                    const dayActs = acts.filter(a => a.day === dow);
+                    if (dayActs.length === 0) continue;
+
+                    const nameUp = r.toUpperCase();
+                    dayActs.forEach(a => {
+                        const badge = document.createElement('span');
+                        badge.className = 'cycle-badge';
+                        if (a.act === 'Livre' || a.act === 'PO') badge.classList.add('badge-livre');
+                        badge.dataset.pessoas = nameUp;
+                        badge.dataset.activity = a.act;
+                        const emoji = a.slot === 'AM' ? '☀️' : '🌙';
+                        badge.textContent = `${emoji} ${nameUp} (${a.act})`;
+                        cell.appendChild(badge);
+                    });
+
+                    let ps = new Set(cell.dataset.pessoas ? cell.dataset.pessoas.split(',').map(x=>x.trim()).filter(Boolean) : []);
+                    ps.add(nameUp);
+                    cell.dataset.pessoas = Array.from(ps).join(',');
+                }
             });
             if (typeof filterPessoa === 'function') filterPessoa();
         })();
@@ -8129,6 +8276,168 @@
             tbody.innerHTML = b_html;
         })();
 
+        })();
+
+        // --- CICLOS 2: Activity cards per cycle ---
+        (function renderCicloCards() {
+            const DAYS = ['Seg','Ter','Qua','Qui','Sex'];
+            const DAY_IDX = [1,2,3,4,5]; // Mon=1..Fri=5
+
+            const CICLO_DATA = {
+                'A': {
+                    acts: {1:{AM:'Amb. Plástica',PM:'PC Plástica'},2:{AM:'Amb. Glaucoma',PM:'Amb. Plástica'},3:{AM:'Cir. Catarata',PM:'Amb. Retina'},4:{AM:'Cir. Glaucoma',PM:'Amb. Plástica'},5:{AM:'PO',PM:'Amb. Neuroftalmo'}},
+                    ps: [{day:'Sáb', hr:'09:00–21:00'}]
+                },
+                'B': {
+                    acts: {1:{AM:'Amb. Catarata',PM:'Amb. Triagem Geral'},2:{AM:'Amb. Lentes de Contato',PM:'Amb. Córnea'},4:{AM:'Amb. Córnea',PM:'Cir. Catarata'},5:{AM:'PO',PM:'Amb. Retina'}},
+                    ps: [{day:'Qua', hr:'09:00–21:00', weekday:3}]
+                },
+                'C': {
+                    acts: {2:{AM:'PO',PM:'Amb. Catarata'},3:{AM:'Amb. Glaucoma',PM:'Cir. Catarata'},4:{AM:'Amb. Catarata',PM:'PC Córnea'},5:{AM:'Cir. Catarata',PM:'Amb. VSN'}},
+                    ps: [{day:'Seg', hr:'09:00–21:00', weekday:1}]
+                },
+                'D': {
+                    acts: {1:{AM:'YAG LASER',PM:'Amb. Triagem Geral'},2:{AM:'PO',PM:'Amb. Lentes de Contato'},3:{AM:'Amb. Retina',PM:'Amb. Oncologia'},4:{AM:'PS 07–11h',PM:'Cir. Catarata'}},
+                    ps: [{day:'Dom', hr:'09:00–21:00'},{day:'Sex', hr:'09:00–21:00', weekday:5},{day:'Qui AM', hr:'07:00–11:00'}]
+                },
+                'E': {
+                    acts: {2:{AM:'Amb. Retina',PM:'PO'},3:{AM:'Amb. Refrativa',PM:'Córnea'},4:{AM:'Cir. Catarata',PM:'Amb. Glaucoma'},5:{AM:'Amb. Córnea',PM:'Cir. Catarata'}},
+                    ps: [{day:'Seg', hr:'07:00–19:00 (12h)', weekday:1}]
+                },
+                'F': {
+                    acts: {1:{AM:'Amb. Estrabismo',PM:'Amb. Estrabismo/PO'},3:{AM:'PO',PM:'Cir. Catarata'},4:{AM:'Amb. Úvea',PM:'Cir. Glaucoma R2'},5:{AM:'Amb. Glaucoma',PM:'Amb. Estrabismo'}},
+                    ps: [{day:'Ter', hr:'09:00–21:00', weekday:2}]
+                },
+                'G': {
+                    acts: {1:{AM:'Triagem Geral',PM:'Amb. Triagem Geral c/ R1'},2:{AM:'Amb. Triagem Geral',PM:'Oftalmopediatria'},3:{AM:'PO',PM:'Amb. Catarata'},5:{AM:'Amb. VSN',PM:'Cir. Catarata'}},
+                    ps: [{day:'Qui', hr:'09:00–21:00', weekday:4}]
+                },
+                'H': {
+                    acts: {1:{AM:'CEO',PM:'CEO'},2:{AM:'Agenda extra',PM:'Agenda extra'},3:{AM:'PO',PM:'Cir. Refrativa Excimer'},4:{AM:'Agenda extra',PM:'Agenda extra'},5:{AM:'Agenda extra',PM:'CEO'}},
+                    ps: []
+                }
+            };
+
+            const container = document.getElementById('cicloCardsContainer');
+            let html = '';
+
+            Object.entries(CICLO_DATA).forEach(([cycle, data]) => {
+                const psText = data.ps.length ? data.ps.map(p => `${p.day} ${p.hr}`).join(' | ') : 'Sem PS';
+                html += `<div class="ciclo-card">`;
+                html += `<div class="ciclo-card-header"><span>Estágio ${cycle}</span><span class="ciclo-ps-info">🏥 ${psText}</span></div>`;
+                html += `<table><thead><tr><th style="width:50px"></th>`;
+                DAYS.forEach(d => html += `<th>${d}</th>`);
+                html += `</tr></thead><tbody>`;
+
+                ['AM','PM'].forEach(slot => {
+                    const label = slot === 'AM' ? '☀️ AM' : '🌙 PM';
+                    html += `<tr><td class="ciclo-slot-label">${label}</td>`;
+                    DAY_IDX.forEach(di => {
+                        const dayData = data.acts[di];
+                        const psOnDay = data.ps.find(p => p.weekday === di);
+
+                        if (psOnDay && !dayData) {
+                            // Full-day PS, no activities
+                            if (slot === 'AM') {
+                                html += `<td class="ciclo-ps" rowspan="2">PS<br>${psOnDay.hr}</td>`;
+                            }
+                            // PM cell absorbed by rowspan
+                        } else {
+                            const act = dayData ? (dayData[slot] || '') : '';
+                            let cls = '';
+                            if (act.startsWith('Cir.') || act.startsWith('CIRURGIA') || act.startsWith('PC ')) cls = ' ciclo-act-cir';
+                            else if (act === 'PO') cls = ' ciclo-act-po';
+                            else if (act.startsWith('PS ')) cls = ' ciclo-ps';
+                            html += `<td class="${cls}">${act}</td>`;
+                        }
+                    });
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+            });
+
+            container.innerHTML = html;
+        })();
+
+        // --- MINICICLO CARDS ---
+        (function renderMinicicloCards() {
+            const DAYS = ['Seg','Ter','Qua','Qui','Sex'];
+            const DAY_IDX = [1,2,3,4,5];
+
+            const MINI_DATA = {
+                'A': {
+                    acts: {1:{AM:'Amb. Plástica',PM:'PC Plástica'},2:{AM:'Amb. Glaucoma',PM:'Amb. Plástica'},3:{AM:'Cir. Catarata',PM:'Amb. Retina'},4:{AM:'Cir. Glaucoma',PM:'Amb. Plástica'},5:{PM:'Amb. Neuroftalmo'}},
+                    ps: [{day:'Sáb', hr:'24h (07–07)'}]
+                },
+                'B': {
+                    acts: {1:{AM:'Amb. Catarata',PM:'Amb. Triagem Geral'},2:{AM:'Amb. Lentes de Contato',PM:'Amb. Córnea'},4:{PM:'Cir. Catarata'},5:{AM:'Amb. VSN/PO',PM:'Amb. Retina'}},
+                    ps: [{day:'Qua', hr:'24h (07–07)', weekday:3}]
+                },
+                'C': {
+                    acts: {1:{AM:'Yag/PO'},2:{AM:'Amb. Retina',PM:'Amb. Catarata'},3:{AM:'Amb. Glaucoma',PM:'Cir. Catarata'},4:{AM:'Amb. Catarata',PM:'Cir. Catarata'}},
+                    ps: [{day:'Sex', hr:'24h (07–07)', weekday:5}]
+                },
+                'D': {
+                    acts: {1:{PM:'Amb. Triagem Geral'},2:{AM:'Amb. Triagem Geral'},3:{AM:'Amb. Retina',PM:'Amb. Oncologia'},4:{AM:'Amb. Córnea',PM:'PC Córnea'},5:{AM:'Cir. Catarata',PM:'Amb. VSN/PO'}},
+                    ps: [{day:'Dom', hr:'24h (07–07)'}]
+                },
+                'E': {
+                    acts: {2:{PM:'Amb. Lentes de Contato'},3:{AM:'PO',PM:'Córnea'},4:{AM:'Cir. Catarata',PM:'Amb. Glaucoma'},5:{AM:'Amb. Córnea',PM:'Cir. Catarata'}},
+                    ps: [{day:'Seg', hr:'24h (07–07)', weekday:1}]
+                },
+                'F': {
+                    acts: {1:{AM:'Amb. Estrabismo',PM:'Amb. Estrabismo/PO'},3:{PM:'Cir. Catarata'},4:{AM:'Amb. Úvea',PM:'Cir. Glaucoma R2 R3'},5:{AM:'Amb. Glaucoma',PM:'Amb. Estrabismo'}},
+                    ps: [{day:'Ter', hr:'24h (07–07)', weekday:2}]
+                },
+                'G': {
+                    acts: {1:{AM:'Triagem Geral',PM:'Triagem Geral'},2:{AM:'Amb. Triagem Geral',PM:'Oftalmopediatria'},3:{AM:'Amb. Refrativa',PM:'Amb. Catarata'},5:{PM:'Cir. Catarata'}},
+                    ps: [{day:'Qui', hr:'24h (07–07)', weekday:4}]
+                },
+                'H': {
+                    acts: {1:{AM:'PS 9-21h',PM:'PS 9-21h'},2:{AM:'PS 9-21h',PM:'PS 9-21h'},3:{AM:'PS 9-21h',PM:'PS 9-21h'},4:{AM:'PS 9-21h',PM:'PS 9-21h'},5:{AM:'PS 9-21h',PM:'PS 9-21h'}},
+                    ps: [{day:'Seg-Sex', hr:'9-21h (12h/dia)'}]
+                }
+            };
+
+            const container = document.getElementById('minicicloCardsContainer');
+            let html = '';
+
+            Object.entries(MINI_DATA).forEach(([cycle, data]) => {
+                const psText = data.ps.map(p => `${p.day} ${p.hr}`).join(' | ');
+                html += `<div class="ciclo-card">`;
+                html += `<div class="ciclo-card-header"><span>Miniciclo ${cycle}</span><span class="ciclo-ps-info">🏥 ${psText}</span></div>`;
+                html += `<table><thead><tr><th style="width:50px"></th>`;
+                DAYS.forEach(d => html += `<th>${d}</th>`);
+                html += `</tr></thead><tbody>`;
+
+                ['AM','PM'].forEach(slot => {
+                    const label = slot === 'AM' ? '☀️ AM' : '🌙 PM';
+                    html += `<tr><td class="ciclo-slot-label">${label}</td>`;
+                    DAY_IDX.forEach(di => {
+                        const dayData = data.acts[di];
+                        const psOnDay = data.ps.find(p => p.weekday === di);
+
+                        if (psOnDay && !dayData) {
+                            if (slot === 'AM') {
+                                html += `<td class="ciclo-ps" rowspan="2">PS<br>${psOnDay.hr}</td>`;
+                            }
+                        } else {
+                            const act = dayData ? (dayData[slot] || '') : '';
+                            let cls = '';
+                            if (act.startsWith('Cir.') || act.startsWith('PC ')) cls = ' ciclo-act-cir';
+                            else if (act === 'PO' || act === 'Yag/PO') cls = ' ciclo-act-po';
+                            else if (act.startsWith('PS ')) cls = ' ciclo-ps';
+                            html += `<td class="${cls}">${act}</td>`;
+                        }
+                    });
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+            });
+
+            container.innerHTML = html;
         })();
     </script>
 </body>
