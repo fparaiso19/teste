@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escala Residência 2025-2027</title>
+    <script>
+        (function() {
+            const storageKey = 'escalaThemePreference';
+            try {
+                const savedTheme = localStorage.getItem(storageKey);
+                if (savedTheme === 'light' || savedTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                }
+            } catch (error) {}
+        })();
+    </script>
     <style>
         :root {
             --bg-page: #f5f5f5;
@@ -17,6 +28,8 @@
             --border-light: #ddd;
             --primary: #007bff;
             --primary-hover: #0056b3;
+            --today-accent: #f59f00;
+            --today-accent-hover: #e67700;
             --disabled: #ccc;
             --filter-bg: #f0f0f0;
             --filter-hover: #e0e0e0;
@@ -31,9 +44,40 @@
             --problemas-border: #f44336;
             --problemas-title: #c62828;
             --problemas-text: #b71c1c;
+            color-scheme: light;
+        }
+        :root[data-theme="dark"] {
+            --bg-page: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --bg-secondary: #363636;
+            --bg-tertiary: #404040;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #909090;
+            --border-color: #404040;
+            --border-light: #4a4a4a;
+            --primary: #4dabf7;
+            --primary-hover: #339af0;
+            --today-accent: #ffb74d;
+            --today-accent-hover: #ffa726;
+            --disabled: #555;
+            --filter-bg: #3d3d3d;
+            --filter-hover: #4a4a4a;
+            --shadow: rgba(0,0,0,0.3);
+            --weekend-bg: #3d3520;
+            --feriado-bg: #3d2020;
+            --recesso-bg: #203d20;
+            --carnaval-bg: #352040;
+            --cbo-bg: #1a3040;
+            --final-de-semana-bg: #3d2d1a;
+            --problemas-bg: #3d2020;
+            --problemas-border: #d32f2f;
+            --problemas-title: #ef5350;
+            --problemas-text: #ef9a9a;
+            color-scheme: dark;
         }
         @media (prefers-color-scheme: dark) {
-            :root {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) {
                 --bg-page: #1a1a1a;
                 --bg-card: #2d2d2d;
                 --bg-secondary: #363636;
@@ -45,6 +89,8 @@
                 --border-light: #4a4a4a;
                 --primary: #4dabf7;
                 --primary-hover: #339af0;
+                --today-accent: #ffb74d;
+                --today-accent-hover: #ffa726;
                 --disabled: #555;
                 --filter-bg: #3d3d3d;
                 --filter-hover: #4a4a4a;
@@ -59,6 +105,7 @@
                 --problemas-border: #d32f2f;
                 --problemas-title: #ef5350;
                 --problemas-text: #ef9a9a;
+                color-scheme: dark;
             }
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -69,10 +116,19 @@
         .nav-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1em; }
         .nav-btn:hover { background: var(--primary-hover); }
         .nav-btn:disabled { background: var(--disabled); cursor: not-allowed; }
+        .today-btn { background: var(--today-accent); }
+        .today-btn:hover { background: var(--today-accent-hover); }
+        .theme-toggle { display: flex; align-items: center; gap: 6px; padding: 4px; background: var(--filter-bg); border-radius: 6px; }
+        .theme-toggle-label { color: var(--text-secondary); font-size: 0.9em; font-weight: 600; }
+        .theme-btn { background: transparent; color: var(--text-secondary); border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
+        .theme-btn:hover { background: var(--filter-hover); color: var(--text-primary); }
+        .theme-btn.active { background: var(--primary); color: white; }
         @media (max-width: 600px) {
             .nav-btn .btn-text, .ics-btn .btn-text { display: none; }
             .nav-btn { padding: 10px 15px; }
             .ics-btn { padding: 10px 15px; }
+            .theme-toggle-label { display: none; }
+            .theme-btn { padding: 8px; font-size: 0.82em; }
         }
         .month-select { padding: 10px 15px; font-size: 1em; border: 1px solid var(--border-light); border-radius: 5px; background: var(--bg-card); color: var(--text-primary); cursor: pointer; min-width: 200px; }
         .filters { background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); }
@@ -179,7 +235,16 @@
         .cal-ac-caso { background: #c62828; }
         .cal-ac-art { background: #e65100; }
         .cal-ac-skip { background: var(--bg-tertiary); color: var(--text-muted); font-style: italic; font-weight: 500; border: 1px dotted var(--border-color); }
-        @media (prefers-color-scheme: dark) { .cal-ac-aula { background: #1976d2; } .cal-ac-caso { background: #d32f2f; } .cal-ac-art { background: #f57c00; } .cal-ac-skip { background: #333; color: #aaa; border-color: #555; } }
+        :root[data-theme="dark"] .cal-ac-aula { background: #1976d2; }
+        :root[data-theme="dark"] .cal-ac-caso { background: #d32f2f; }
+        :root[data-theme="dark"] .cal-ac-art { background: #f57c00; }
+        :root[data-theme="dark"] .cal-ac-skip { background: #333; color: #aaa; border-color: #555; }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .cal-ac-aula { background: #1976d2; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .cal-ac-caso { background: #d32f2f; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .cal-ac-art { background: #f57c00; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .cal-ac-skip { background: #333; color: #aaa; border-color: #555; }
+        }
         /* === TAB NAVIGATION === */
         .page-tabs { background: var(--bg-card); padding: 0; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); display: flex; overflow: hidden; }
         .page-tab { flex: 1; padding: 16px 20px; background: var(--bg-secondary); color: var(--text-muted); border: none; cursor: pointer; font-size: 1.05em; font-weight: 600; transition: all 0.2s; text-align: center; border-bottom: 3px solid transparent; }
@@ -228,30 +293,50 @@
         .ac-row-skip { background: var(--bg-secondary); }
         .ac-row-skip td { color: var(--text-muted); font-style: italic; }
         .ac-row-aula { background: #e3f2fd; }
-        @media (prefers-color-scheme: dark) { .ac-row-aula { background: #1a3350; } }
+        :root[data-theme="dark"] .ac-row-aula { background: #1a3350; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-row-aula { background: #1a3350; } }
         .ac-row-hl td { background: rgba(255,235,59,0.15); }
-        @media (prefers-color-scheme: dark) { .ac-row-hl td { background: rgba(255,235,59,0.08); } }
+        :root[data-theme="dark"] .ac-row-hl td { background: rgba(255,235,59,0.08); }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-row-hl td { background: rgba(255,235,59,0.08); } }
         .ac-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78em; font-weight: 600; color: white; }
         .ac-badge-fellow { background: #78909c; } .ac-badge-r3 { background: #7e57c2; } .ac-badge-r2 { background: #1e88e5; } .ac-badge-r1 { background: #43a047; }
-        @media (prefers-color-scheme: dark) { .ac-badge-fellow { background: #90a4ae; } .ac-badge-r3 { background: #b39ddb; } .ac-badge-r2 { background: #64b5f6; } .ac-badge-r1 { background: #81c784; } }
+        :root[data-theme="dark"] .ac-badge-fellow { background: #90a4ae; }
+        :root[data-theme="dark"] .ac-badge-r3 { background: #b39ddb; }
+        :root[data-theme="dark"] .ac-badge-r2 { background: #64b5f6; }
+        :root[data-theme="dark"] .ac-badge-r1 { background: #81c784; }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-badge-fellow { background: #90a4ae; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-badge-r3 { background: #b39ddb; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-badge-r2 { background: #64b5f6; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-badge-r1 { background: #81c784; }
+        }
         .ac-b-aula { background: #1565c0; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
         .ac-b-caso { background: #c62828; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
         .ac-b-art { background: #e65100; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
-        @media (prefers-color-scheme: dark) { .ac-b-aula { background: #90caf9; color: #1a1a1a; } .ac-b-caso { background: #ef9a9a; color: #1a1a1a; } .ac-b-art { background: #ffcc80; color: #1a1a1a; } }
+        :root[data-theme="dark"] .ac-b-aula { background: #90caf9; color: #1a1a1a; }
+        :root[data-theme="dark"] .ac-b-caso { background: #ef9a9a; color: #1a1a1a; }
+        :root[data-theme="dark"] .ac-b-art { background: #ffcc80; color: #1a1a1a; }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-b-aula { background: #90caf9; color: #1a1a1a; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-b-caso { background: #ef9a9a; color: #1a1a1a; }
+            :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-b-art { background: #ffcc80; color: #1a1a1a; }
+        }
         .ac-legenda { background: var(--bg-card); padding: 14px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px var(--shadow); }
         .ac-legenda h3 { margin-bottom: 8px; color: var(--text-secondary); font-size: 0.95em; }
         .ac-legenda-items { display: flex; flex-wrap: wrap; gap: 14px; }
         .ac-legenda-item { display: flex; align-items: center; gap: 6px; font-size: 0.85em; }
         .ac-legenda-color { width: 18px; height: 18px; border-radius: 4px; }
         .ac-congress { background: #fff8e1; border: 2px solid #ffc107; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.9em; color: var(--text-primary); }
-        @media (prefers-color-scheme: dark) { .ac-congress { background: #3d3520; border-color: #ffa000; } }
+        :root[data-theme="dark"] .ac-congress { background: #3d3520; border-color: #ffa000; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-congress { background: #3d3520; border-color: #ffa000; } }
         .ac-ferias-card, .ac-timeline-card { background: var(--bg-card); border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px var(--shadow); overflow: hidden; }
         .ac-ferias-row { display: flex; align-items: center; padding: 6px 16px; gap: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.85em; }
         .ac-ferias-row:last-child { border-bottom: none; }
         .ac-ferias-name { width: 90px; font-weight: 500; flex-shrink: 0; }
         .ac-ferias-bar-wrap { flex: 1; height: 20px; background: var(--bg-tertiary); border-radius: 4px; position: relative; overflow: hidden; }
         .ac-ferias-bar { position: absolute; height: 100%; background: #2e7d32; border-radius: 4px; opacity: 0.7; }
-        @media (prefers-color-scheme: dark) { .ac-ferias-bar { background: #81c784; } }
+        :root[data-theme="dark"] .ac-ferias-bar { background: #81c784; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-ferias-bar { background: #81c784; } }
         .ac-ferias-label { color: var(--text-muted); font-size: 0.82em; white-space: nowrap; flex-shrink: 0; }
         .ac-tl-item { display: flex; align-items: center; padding: 8px 16px; gap: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.85em; }
         .ac-tl-item:last-child { border-bottom: none; }
@@ -261,7 +346,8 @@
         .ac-tl-phase { font-size: 0.72em; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
         .ac-phase-pre { background: var(--bg-tertiary); color: var(--text-muted); }
         .ac-phase-post { background: #e8f5e9; color: #2e7d32; }
-        @media (prefers-color-scheme: dark) { .ac-phase-post { background: #1a3d1a; color: #81c784; } }
+        :root[data-theme="dark"] .ac-phase-post { background: #1a3d1a; color: #81c784; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ac-phase-post { background: #1a3d1a; color: #81c784; } }
         .ciclo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 16px; }
         .ciclo-card { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
         .ciclo-card-header { background: var(--primary); color: white; padding: 10px 14px; font-weight: bold; font-size: 0.95em; display: flex; justify-content: space-between; align-items: center; }
@@ -270,11 +356,14 @@
         .ciclo-card th, .ciclo-card td { padding: 7px 6px; text-align: center; border: 1px solid var(--border-color); font-size: 0.82em; color: var(--text-primary); }
         .ciclo-card th { background: var(--bg-secondary); font-weight: 600; }
         .ciclo-card td.ciclo-ps { background: #fff3e0; color: #e65100; font-weight: 600; font-size: 0.78em; }
-        @media (prefers-color-scheme: dark) { .ciclo-card td.ciclo-ps { background: #3e2723; color: #ffab40; } }
+        :root[data-theme="dark"] .ciclo-card td.ciclo-ps { background: #3e2723; color: #ffab40; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ciclo-card td.ciclo-ps { background: #3e2723; color: #ffab40; } }
         .ciclo-card td.ciclo-act-cir { background: #e8f5e9; font-weight: 500; }
-        @media (prefers-color-scheme: dark) { .ciclo-card td.ciclo-act-cir { background: #1b3a1b; } }
+        :root[data-theme="dark"] .ciclo-card td.ciclo-act-cir { background: #1b3a1b; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ciclo-card td.ciclo-act-cir { background: #1b3a1b; } }
         .ciclo-card td.ciclo-act-po { background: #e3f2fd; font-weight: 500; }
-        @media (prefers-color-scheme: dark) { .ciclo-card td.ciclo-act-po { background: #1a2a3d; } }
+        :root[data-theme="dark"] .ciclo-card td.ciclo-act-po { background: #1a2a3d; }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) .ciclo-card td.ciclo-act-po { background: #1a2a3d; } }
         .ciclo-card td.ciclo-slot-label { background: var(--bg-secondary); font-weight: 600; text-align: left; padding-left: 10px; white-space: nowrap; }
         @media (max-width: 600px) { .ciclo-grid { grid-template-columns: 1fr; } }
         @media print {
@@ -363,10 +452,17 @@
     </div>
 
     <div class="nav-container">
+        <button class="nav-btn today-btn" id="todayBtn" onclick="goToToday()">Hoje</button>
         <button class="nav-btn" id="prevBtn" onclick="navigateMonth(-1)">&larr;<span class="btn-text"> Anterior</span></button>
         <select class="month-select" id="monthSelect" onchange="goToMonth(this.value)"></select>
         <button class="nav-btn" id="nextBtn" onclick="navigateMonth(1)"><span class="btn-text">Próximo </span>&rarr;</button>
         <button class="ics-btn" onclick="openIcsModal()">&#128197;<span class="btn-text"> Exportar</span></button>
+        <div class="theme-toggle" role="group" aria-label="Tema">
+            <span class="theme-toggle-label">Tema:</span>
+            <button type="button" class="theme-btn" data-theme-option="system" aria-pressed="false" onclick="setThemePreference('system')">Sistema</button>
+            <button type="button" class="theme-btn" data-theme-option="light" aria-pressed="false" onclick="setThemePreference('light')">Claro</button>
+            <button type="button" class="theme-btn" data-theme-option="dark" aria-pressed="false" onclick="setThemePreference('dark')">Escuro</button>
+        </div>
     </div>
 <div class="month-container">
     <div class="month-header">março 2025</div>
@@ -7478,9 +7574,45 @@
         </div>
     </div><!-- end page-ciclos -->
     <script>
+        const THEME_STORAGE_KEY = 'escalaThemePreference';
         let currentMonthIndex = 0;
         const months = document.querySelectorAll('.month-container');
         const monthSelect = document.getElementById('monthSelect');
+
+        function getSavedThemePreference() {
+            try {
+                const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+                return ['system', 'light', 'dark'].includes(savedTheme) ? savedTheme : 'system';
+            } catch (error) {
+                return 'system';
+            }
+        }
+
+        function updateThemeToggle(theme) {
+            document.querySelectorAll('.theme-btn').forEach(button => {
+                const isActive = button.dataset.themeOption === theme;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function applyThemePreference(theme) {
+            if (theme === 'light' || theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', theme);
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            updateThemeToggle(theme);
+        }
+
+        function setThemePreference(theme) {
+            applyThemePreference(theme);
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, theme);
+            } catch (error) {}
+        }
+
+        applyThemePreference(getSavedThemePreference());
 
         // Populate dropdown grouped by year
         let currentYear = null;
@@ -7521,6 +7653,17 @@
 
         function goToMonth(index) {
             showMonth(parseInt(index));
+        }
+
+        function goToToday() {
+            const todayMonthIndex = findCurrentMonth();
+            showMonth(todayMonthIndex);
+            requestAnimationFrame(() => {
+                const activeTodayEl = document.querySelector('.month-container.active .day.today');
+                if (activeTodayEl) {
+                    activeTodayEl.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
+                }
+            });
         }
 
         // Always show year selector and default to current year
