@@ -123,16 +123,33 @@
         .theme-btn { background: transparent; color: var(--text-secondary); border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
         .theme-btn:hover { background: var(--filter-hover); color: var(--text-primary); }
         .theme-btn.active { background: var(--primary); color: white; }
+        .view-toggle { display: flex; align-items: center; gap: 6px; padding: 4px; background: var(--filter-bg); border-radius: 6px; }
+        .view-btn { background: transparent; color: var(--text-secondary); border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
+        .view-btn:hover { background: var(--filter-hover); color: var(--text-primary); }
+        .view-btn.active { background: var(--primary); color: white; }
         @media (max-width: 600px) {
             .nav-btn .btn-text, .ics-btn .btn-text { display: none; }
             .nav-btn { padding: 10px 15px; }
             .ics-btn { padding: 10px 15px; }
             .theme-toggle-label { display: none; }
             .theme-btn { padding: 8px; font-size: 0.82em; }
+            .view-btn { padding: 8px; font-size: 0.82em; }
         }
         .month-select { padding: 10px 15px; font-size: 1em; border: 1px solid var(--border-light); border-radius: 5px; background: var(--bg-card); color: var(--text-primary); cursor: pointer; min-width: 200px; }
         .filters { background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); }
         .filters h3 { margin-bottom: 10px; color: var(--text-secondary); }
+        .collapsible-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .collapsible-panel .collapsible-panel-header h3 { margin-bottom: 0; }
+        .collapsible-panel.collapsed .collapsible-panel-header { margin-bottom: 0; }
+        .collapsible-panel-content { display: block; }
+        .collapsible-panel.collapsed .collapsible-panel-content { display: none; }
+        .collapse-toggle { background: var(--filter-bg); color: var(--text-secondary); border: 1px solid var(--border-light); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82em; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .collapse-toggle:hover { background: var(--filter-hover); color: var(--text-primary); }
+        .collapse-toggle-icon { width: 1em; text-align: center; font-weight: 700; }
+        @media (max-width: 600px) {
+            .collapsible-panel-header { align-items: flex-start; }
+            .collapse-toggle { padding: 6px 8px; }
+        }
         .filter-group { display: flex; flex-wrap: wrap; gap: 10px; }
         .filter-item { display: flex; align-items: center; gap: 5px; padding: 5px 10px; background: var(--filter-bg); border-radius: 4px; cursor: pointer; color: var(--text-primary); }
         .filter-item:hover { background: var(--filter-hover); }
@@ -186,6 +203,39 @@
         .ferias { color: var(--text-muted); padding: 2px 6px; font-size: 0.7em; margin-top: 2px; display: block; }
         .folga { background: #81c784; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-top: 2px; display: none; }
         .show-folgas .folga { display: block; }
+        .agenda-container { display: none; background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); }
+        #page-escala.agenda-mode .agenda-container { display: block; }
+        #page-escala.agenda-mode .month-container { display: none !important; }
+        #page-escala.agenda-mode .calendar-nav-control { display: none !important; }
+        .agenda-summary { margin-bottom: 16px; }
+        .agenda-summary h3 { color: var(--text-primary); margin-bottom: 6px; }
+        .agenda-summary p { color: var(--text-secondary); font-size: 0.92em; }
+        .agenda-month-group { margin-bottom: 20px; }
+        .agenda-month-header { background: var(--primary); color: white; padding: 12px 14px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; text-transform: capitalize; }
+        .agenda-day-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 10px; background: var(--bg-card); }
+        .agenda-day-card:last-child { margin-bottom: 0; }
+        .agenda-day-card.agenda-day-today { border-color: var(--today-accent); box-shadow: inset 0 0 0 1px var(--today-accent); }
+        .agenda-day-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; }
+        .agenda-day-title { font-weight: 700; color: var(--text-primary); }
+        .agenda-day-subtitle { color: var(--text-muted); font-size: 0.88em; margin-top: 2px; }
+        .agenda-day-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .agenda-day-tag { background: var(--bg-tertiary); color: var(--text-secondary); padding: 3px 8px; border-radius: 999px; font-size: 0.75em; font-weight: 600; }
+        .agenda-day-tag.is-today { background: var(--today-accent); color: #1a1a1a; }
+        .agenda-item-list { display: flex; flex-direction: column; gap: 8px; }
+        .agenda-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: var(--bg-secondary); }
+        .agenda-item-kind { flex-shrink: 0; padding: 3px 8px; border-radius: 999px; font-size: 0.75em; font-weight: 700; color: white; }
+        .agenda-item-kind.kind-plantao { background: var(--primary); }
+        .agenda-item-kind.kind-ps { background: var(--primary); }
+        .agenda-item-kind.kind-evento { background: #ff9800; }
+        .agenda-item-kind.kind-ciclo { background: #00897b; }
+        .agenda-item-kind.kind-aula { background: #1565c0; }
+        .agenda-item-kind.kind-caso { background: #c62828; }
+        .agenda-item-kind.kind-artigo { background: #e65100; }
+        .agenda-item-kind.kind-skip { background: var(--bg-tertiary); color: var(--text-primary); }
+        .agenda-item-kind.kind-ferias { background: #607d8b; }
+        .agenda-item-kind.kind-folga { background: #81c784; }
+        .agenda-item-text { color: var(--text-primary); font-size: 0.92em; line-height: 1.4; }
+        .agenda-empty { border: 1px dashed var(--border-light); border-radius: 8px; padding: 20px; text-align: center; color: var(--text-secondary); background: var(--bg-secondary); }
         .folga-toggle { background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); display: none; }
         .folga-toggle.visible { display: block; }
         .folga-toggle label { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary); }
@@ -193,12 +243,18 @@
         .hidden-pessoa, .hidden-activity { display: none !important; }
         .tabela-container { background: var(--bg-card); border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px var(--shadow); overflow-x: auto; display: none; }
         .tabela-container.visible { display: block; }
+        .tabela-container.table-collapsible { overflow: hidden; }
+        .table-collapsible .collapsible-panel-content { overflow-x: auto; }
         .problemas-container { background: var(--problemas-bg); border: 2px solid var(--problemas-border); border-radius: 8px; margin-bottom: 20px; padding: 15px; display: none; }
         .problemas-container.visible { display: block; }
         .problemas-container h3 { color: var(--problemas-title); margin-bottom: 10px; }
         .problemas-container ul { margin-left: 20px; }
         .problemas-container li { color: var(--problemas-text); margin-bottom: 5px; }
         .tabela-header { background: var(--primary); color: white; padding: 15px; font-size: 1.1em; font-weight: bold; }
+        .table-collapsible .tabela-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .table-collapsible .tabela-header-title { min-width: 0; }
+        .table-collapsible .collapse-toggle { background: rgba(255,255,255,0.18); color: white; border-color: rgba(255,255,255,0.45); flex-shrink: 0; }
+        .table-collapsible .collapse-toggle:hover { background: rgba(255,255,255,0.28); color: white; }
         .tabela { width: 100%; border-collapse: collapse; min-width: 500px; }
         .tabela th, .tabela td { padding: 10px; text-align: center; border: 1px solid var(--border-color); color: var(--text-primary); }
         .tabela th { background: var(--bg-secondary); font-weight: bold; }
@@ -260,6 +316,8 @@
         .ac-nav { background: var(--bg-card); padding: 12px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px var(--shadow); display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
         .ac-nav .nav-btn { background: var(--primary); color: white; border: none; padding: 9px 18px; border-radius: 5px; cursor: pointer; font-size: 0.95em; }
         .ac-nav .nav-btn:hover { background: var(--primary-hover); }
+        .ac-nav .today-btn { background: var(--today-accent); }
+        .ac-nav .today-btn:hover { background: var(--today-accent-hover); }
         .ac-month-select { padding: 9px 14px; font-size: 0.95em; border: 1px solid var(--border-light); border-radius: 5px; background: var(--bg-card); color: var(--text-primary); cursor: pointer; }
         .ac-print-btn { background: #43a047; color: white; border: none; padding: 9px 18px; border-radius: 5px; cursor: pointer; font-size: 0.95em; }
         .ac-print-btn:hover { background: #388e3c; }
@@ -272,6 +330,9 @@
         .ac-filter-item.active { background: var(--primary); color: white; }
         .ac-summary-card { background: var(--bg-card); border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px var(--shadow); overflow: hidden; }
         .ac-summary-header { background: var(--primary); color: white; padding: 12px 16px; font-weight: bold; font-size: 1.05em; }
+        .ac-card-collapsible .ac-summary-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .ac-card-collapsible .collapse-toggle { background: rgba(255,255,255,0.18); color: white; border-color: rgba(255,255,255,0.45); flex-shrink: 0; }
+        .ac-card-collapsible .collapse-toggle:hover { background: rgba(255,255,255,0.28); color: white; }
         .ac-summary-table { width: 100%; border-collapse: collapse; }
         .ac-summary-table th, .ac-summary-table td { padding: 9px 12px; text-align: center; border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.88em; }
         .ac-summary-table th { background: var(--bg-secondary); font-weight: 600; }
@@ -399,63 +460,77 @@
 <li>Nenhum conflito encontrado!</li>        </ul>
     </div>
 
-    <div class="filters">
-        <h3>Filtrar por Residente:</h3>
-        <div class="filter-group">
-            <label class="filter-item">
-                <input type="checkbox" id="all" onchange="toggleAll(this)"> Todos
-            </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="ARTHUR" onchange="filterPessoa()"> ARTHUR
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="FELIPE" onchange="filterPessoa()"> FELIPE
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="FERNANDA" onchange="filterPessoa()"> FERNANDA
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="JOAO" onchange="filterPessoa()"> JOAO
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="LEONARDO" onchange="filterPessoa()"> LEONARDO
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="MARINA" onchange="filterPessoa()"> MARINA
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="THAUANNA" onchange="filterPessoa()"> THAUANNA
-        </label>
-        <label class="filter-item">
-            <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" onchange="filterPessoa()"> VICTORIA
-        </label>
+    <div class="filters collapsible-panel" id="residentFilterPanel">
+        <div class="collapsible-panel-header">
+            <h3>Filtrar por Residente:</h3>
+            <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
         </div>
-        <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
-            <strong>Legenda R2:</strong>
-            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#1565c0;border-radius:2px;display:inline-block;"></span> Aula</span>
-            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block;"></span> Caso</span>
-            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#e65100;border-radius:2px;display:inline-block;"></span> Artigo</span>
-            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:var(--bg-tertiary);border:1px dotted var(--border-color);border-radius:2px;display:inline-block;"></span> Sem Reunião</span>
-            <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#00897b;border-radius:2px;display:inline-block;"></span> Atividade Ciclo</span>
+        <div class="collapsible-panel-content">
+            <div class="filter-group">
+                <label class="filter-item">
+                    <input type="checkbox" id="all" onchange="toggleAll(this)"> Todos
+                </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="ARTHUR" onchange="filterPessoa()"> ARTHUR
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="FELIPE" onchange="filterPessoa()"> FELIPE
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="FERNANDA" onchange="filterPessoa()"> FERNANDA
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="JOAO" onchange="filterPessoa()"> JOAO
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="LEONARDO" onchange="filterPessoa()"> LEONARDO
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="MARINA" onchange="filterPessoa()"> MARINA
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="THAUANNA" onchange="filterPessoa()"> THAUANNA
+            </label>
+            <label class="filter-item">
+                <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" onchange="filterPessoa()"> VICTORIA
+            </label>
+            </div>
+            <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
+                <strong>Legenda R2:</strong>
+                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#1565c0;border-radius:2px;display:inline-block;"></span> Aula</span>
+                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block;"></span> Caso</span>
+                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#e65100;border-radius:2px;display:inline-block;"></span> Artigo</span>
+                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:var(--bg-tertiary);border:1px dotted var(--border-color);border-radius:2px;display:inline-block;"></span> Sem Reunião</span>
+                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#00897b;border-radius:2px;display:inline-block;"></span> Atividade Ciclo</span>
+            </div>
         </div>
     </div>
 
-    <div class="activity-filters" id="activityFilters">
-        <h3>Filtrar Atividades do Ciclo R2:</h3>
-        <div class="activity-filter-section" id="activityResidentSection"></div>
-        <div class="activity-filter-section">
-            <label class="activity-filter-item active">
-                <input type="checkbox" id="actFilterAll" checked onchange="toggleAllActivities(this)"> Todas as atividades
-            </label>
+    <div class="activity-filters collapsible-panel" id="activityFilters">
+        <div class="collapsible-panel-header">
+            <h3>Filtrar Atividades do Ciclo R2:</h3>
+            <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('activityFilters')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
         </div>
-        <div id="activityFilterGroups"></div>
+        <div class="collapsible-panel-content">
+            <div class="activity-filter-section" id="activityResidentSection"></div>
+            <div class="activity-filter-section">
+                <label class="activity-filter-item active">
+                    <input type="checkbox" id="actFilterAll" checked onchange="toggleAllActivities(this)"> Todas as atividades
+                </label>
+            </div>
+            <div id="activityFilterGroups"></div>
+        </div>
     </div>
 
     <div class="nav-container">
         <button class="nav-btn today-btn" id="todayBtn" onclick="goToToday()">Hoje</button>
-        <button class="nav-btn" id="prevBtn" onclick="navigateMonth(-1)">&larr;<span class="btn-text"> Anterior</span></button>
-        <select class="month-select" id="monthSelect" onchange="goToMonth(this.value)"></select>
-        <button class="nav-btn" id="nextBtn" onclick="navigateMonth(1)"><span class="btn-text">Próximo </span>&rarr;</button>
+        <button class="nav-btn calendar-nav-control" id="prevBtn" onclick="navigateMonth(-1)">&larr;<span class="btn-text"> Anterior</span></button>
+        <select class="month-select calendar-nav-control" id="monthSelect" onchange="goToMonth(this.value)"></select>
+        <button class="nav-btn calendar-nav-control" id="nextBtn" onclick="navigateMonth(1)"><span class="btn-text">Próximo </span>&rarr;</button>
+        <div class="view-toggle" role="group" aria-label="Modo de visualização">
+            <button type="button" class="view-btn active" data-escala-view="calendar" aria-pressed="true" onclick="setEscalaView('calendar')">Calendário</button>
+            <button type="button" class="view-btn" data-escala-view="agenda" aria-pressed="false" onclick="setEscalaView('agenda')">Agenda</button>
+        </div>
         <button class="ics-btn" onclick="openIcsModal()">&#128197;<span class="btn-text"> Exportar</span></button>
         <div class="theme-toggle" role="group" aria-label="Tema">
             <span class="theme-toggle-label">Tema:</span>
@@ -464,6 +539,7 @@
             <button type="button" class="theme-btn" data-theme-option="dark" aria-pressed="false" onclick="setThemePreference('dark')">Escuro</button>
         </div>
     </div>
+    <div class="agenda-container" id="agendaView"></div>
 <div class="month-container">
     <div class="month-header">março 2025</div>
     <div class="calendar">
@@ -7512,9 +7588,9 @@
             </tr>
         </thead>
         <tbody>
-<tr><td>ARTHUR</td><td>240</td></tr><tr><td>FELIPE</td><td>243</td></tr><tr><td>FERNANDA</td><td>241</td></tr><tr><td>JOAO</td><td>244</td></tr><tr><td>LEONARDO</td><td>239</td></tr><tr><td>MARINA</td><td>246</td></tr><tr><td>THAUANNA</td><td>244</td></tr><tr><td>VICTORIA</td><td>239</td></tr></tbody></table></div>    <div class="ics-modal-overlay" id="icsModal" onclick="if(event.target===this)closeIcsModal()">
-        <div class="ics-modal">
-            <h3>Exportar calendário</h3>
+<tr><td>ARTHUR</td><td>240</td></tr><tr><td>FELIPE</td><td>243</td></tr><tr><td>FERNANDA</td><td>241</td></tr><tr><td>JOAO</td><td>244</td></tr><tr><td>LEONARDO</td><td>239</td></tr><tr><td>MARINA</td><td>246</td></tr><tr><td>THAUANNA</td><td>244</td></tr><tr><td>VICTORIA</td><td>239</td></tr></tbody></table></div>    <div class="ics-modal-overlay" id="icsModal" aria-hidden="true" onclick="if(event.target===this)closeIcsModal()">
+        <div class="ics-modal" role="dialog" aria-modal="true" aria-labelledby="icsModalTitle" tabindex="-1">
+            <h3 id="icsModalTitle">Exportar calendário</h3>
             <div class="ics-periodo">
                 <label class="ics-section-label">Período:</label>
                 <div class="ics-periodo-inputs">
@@ -7541,7 +7617,7 @@
     <div id="page-aulas" class="page-content">
         <div class="ac-header"><h1>📚 Escala de Aulas e Casos — R2 Retina</h1><p>Período: 17/03/2026 a 02/03/2027 (inclui apresentações pré-17/03)</p></div>
         <div class="ac-congress">⚠️ <strong>Congresso:</strong> 08–13/09/2026 — sem atividades. A partir de 15/09, R2 assume aulas R=3, ciclo → Fellow→Fellow→R2→R1.<br>📋 <strong>Miniciclo (A,B,C,D,G):</strong> restringe elegibilidade até 08/05/2026 (férias Felipe).</div>
-        <div class="ac-nav"><button class="nav-btn" onclick="acNavMonth(-1)">← Anterior</button><select class="ac-month-select" id="acMonthSelect" onchange="acGoToMonth(this.value)"></select><button class="nav-btn" onclick="acNavMonth(1)">Próximo →</button><button class="ac-print-btn" onclick="window.print()">🖨️ Exportar PDF</button></div>
+        <div class="ac-nav"><button class="nav-btn today-btn" id="acTodayBtn" onclick="acGoToToday()">Hoje</button><button class="nav-btn" onclick="acNavMonth(-1)">← Anterior</button><select class="ac-month-select" id="acMonthSelect" onchange="acGoToMonth(this.value)"></select><button class="nav-btn" onclick="acNavMonth(1)">Próximo →</button><button class="ac-print-btn" onclick="window.print()">🖨️ Exportar PDF</button></div>
         <div class="ac-filters"><h3>Filtrar por Residente:</h3><div class="ac-filter-group"><label class="ac-filter-item active"><input type="checkbox" id="acFilterAll" checked onchange="acToggleAll(this)"> Todos</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Felipe" checked onchange="acApplyFilter()"> Felipe</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="João" checked onchange="acApplyFilter()"> João</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Arthur" checked onchange="acApplyFilter()"> Arthur</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Leonardo" checked onchange="acApplyFilter()"> Leonardo</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Marina" checked onchange="acApplyFilter()"> Marina</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Fernanda" checked onchange="acApplyFilter()"> Fernanda</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Victoria" checked onchange="acApplyFilter()"> Victoria</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Thauanna" checked onchange="acApplyFilter()"> Thauanna</label></div></div>
         <div class="ac-legenda"><h3>Legenda:</h3><div class="ac-legenda-items"><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#1565c0"></div> Aula R2</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#c62828"></div> Caso R2</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#e65100"></div> Artigo</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#7e57c2"></div> R3</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#43a047"></div> R1</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#78909c"></div> Fellow</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#e0e0e0"></div> Sem reunião</div></div></div>
         <div id="acScheduleContainer"></div>
@@ -7575,6 +7651,7 @@
     </div><!-- end page-ciclos -->
     <script>
         const THEME_STORAGE_KEY = 'escalaThemePreference';
+        let escalaViewMode = 'calendar';
         let currentMonthIndex = 0;
         const months = document.querySelectorAll('.month-container');
         const monthSelect = document.getElementById('monthSelect');
@@ -7659,12 +7736,230 @@
             const todayMonthIndex = findCurrentMonth();
             showMonth(todayMonthIndex);
             requestAnimationFrame(() => {
+                if (escalaViewMode === 'agenda') {
+                    renderAgenda();
+                    requestAnimationFrame(() => {
+                        const agendaTodayEl = document.querySelector('.agenda-day-today') ||
+                            document.querySelector('.agenda-summary') ||
+                            document.getElementById('agendaView');
+                        if (agendaTodayEl) {
+                            agendaTodayEl.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
+                        }
+                    });
+                    return;
+                }
                 const activeTodayEl = document.querySelector('.month-container.active .day.today');
                 if (activeTodayEl) {
                     activeTodayEl.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
                 }
             });
         }
+
+        function updateEscalaViewToggle(mode) {
+            document.querySelectorAll('.view-btn').forEach(button => {
+                const isActive = button.dataset.escalaView === mode;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function parseAgendaDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function formatAgendaMonth(dateStr) {
+            const date = parseAgendaDate(dateStr);
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            return monthNames[date.getMonth()] + ' ' + date.getFullYear();
+        }
+
+        function formatAgendaDate(dateStr) {
+            const date = parseAgendaDate(dateStr);
+            return String(date.getDate()).padStart(2, '0') + '/' + String(date.getMonth() + 1).padStart(2, '0') + '/' + date.getFullYear();
+        }
+
+        function formatAgendaWeekday(dateStr) {
+            const date = parseAgendaDate(dateStr);
+            const weekdayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            return weekdayNames[date.getDay()];
+        }
+
+        function escapeAgendaHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getAgendaDayTags(day, date) {
+            const tags = [];
+            if (date === todayStr) tags.push({text: 'Hoje', className: 'is-today'});
+            if (day.classList.contains('feriado')) tags.push({text: 'Feriado'});
+            if (day.classList.contains('recesso')) tags.push({text: 'Recesso'});
+            if (day.classList.contains('carnaval')) tags.push({text: 'Carnaval'});
+            if (day.classList.contains('cbo')) tags.push({text: 'CBO'});
+            if (day.classList.contains('finalDeSemana')) tags.push({text: 'Final de Semana'});
+            else if (day.classList.contains('weekend')) tags.push({text: 'Fim de Semana'});
+            return tags;
+        }
+
+        function getAgendaItemMeta(el) {
+            if (el.classList.contains('plantao')) return {kind: 'plantao', label: 'Plantão'};
+            if (el.classList.contains('ps-badge')) return {kind: 'ps', label: 'PS'};
+            if (el.classList.contains('cycle-badge')) return {kind: 'ciclo', label: 'Ciclo'};
+            if (el.classList.contains('cal-ac-aula')) return {kind: 'aula', label: 'Aula'};
+            if (el.classList.contains('cal-ac-caso')) return {kind: 'caso', label: 'Caso'};
+            if (el.classList.contains('cal-ac-art')) return {kind: 'artigo', label: 'Artigo'};
+            if (el.classList.contains('cal-ac-skip')) return {kind: 'skip', label: 'Sem Reunião'};
+            if (el.classList.contains('ferias')) return {kind: 'ferias', label: 'Férias'};
+            if (el.classList.contains('folga')) return {kind: 'folga', label: 'Folga'};
+            return {kind: 'evento', label: 'Projeto'};
+        }
+
+        function renderAgenda() {
+            const agendaView = document.getElementById('agendaView');
+            if (!agendaView) return;
+
+            const selectedPessoas = Array.from(document.querySelectorAll('.pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
+            if (selectedPessoas.length === 0) {
+                agendaView.innerHTML = '<div class="agenda-empty">Selecione pelo menos um residente para visualizar a agenda a partir de hoje.</div>';
+                return;
+            }
+
+            const includeFolgas = !!document.getElementById('showFolgas')?.checked;
+            const monthBuckets = new Map();
+            const kindPriority = {plantao: 0, ps: 1, evento: 2, ciclo: 3, aula: 4, caso: 5, artigo: 6, skip: 7, ferias: 8, folga: 9};
+
+            document.querySelectorAll('.day[data-date]').forEach(day => {
+                const date = day.dataset.date;
+                if (!date || date < todayStr) return;
+
+                const items = [];
+                day.querySelectorAll('.plantao, .evento, .ferias, .folga, .ps-badge, .cycle-badge, .cal-ac-badge').forEach(el => {
+                    if (el.classList.contains('folga') && !includeFolgas) return;
+                    if (el.classList.contains('hidden-pessoa') || el.classList.contains('hidden-activity')) return;
+                    const elPessoas = el.dataset.pessoas ? el.dataset.pessoas.split(',').filter(Boolean) : [];
+                    if (elPessoas.length > 0 && !elPessoas.some(p => selectedPessoas.includes(p))) return;
+                    const meta = getAgendaItemMeta(el);
+                    items.push({kind: meta.kind, label: meta.label, text: el.textContent.trim()});
+                });
+
+                if (items.length === 0) return;
+                items.sort((a, b) => (kindPriority[a.kind] - kindPriority[b.kind]) || a.text.localeCompare(b.text, 'pt-BR'));
+
+                const monthLabel = formatAgendaMonth(date);
+                if (!monthBuckets.has(monthLabel)) monthBuckets.set(monthLabel, []);
+                monthBuckets.get(monthLabel).push({
+                    date,
+                    weekday: formatAgendaWeekday(date),
+                    formattedDate: formatAgendaDate(date),
+                    tags: getAgendaDayTags(day, date),
+                    items
+                });
+            });
+
+            if (monthBuckets.size === 0) {
+                agendaView.innerHTML = '<div class="agenda-empty">Nenhum item futuro encontrado para os residentes selecionados.</div>';
+                return;
+            }
+
+            let html = '<div class="agenda-summary">';
+            html += '<h3>Agenda dos Residentes Selecionados</h3>';
+            html += '<p>A partir de ' + formatAgendaDate(todayStr) + ' · ' + escapeAgendaHtml(selectedPessoas.join(', ')) + '</p>';
+            html += '</div>';
+
+            monthBuckets.forEach((entries, monthLabel) => {
+                html += '<section class="agenda-month-group">';
+                html += '<div class="agenda-month-header">' + escapeAgendaHtml(monthLabel) + '</div>';
+                entries.forEach(entry => {
+                    html += '<article class="agenda-day-card' + (entry.date === todayStr ? ' agenda-day-today' : '') + '">';
+                    html += '<div class="agenda-day-head">';
+                    html += '<div><div class="agenda-day-title">' + escapeAgendaHtml(entry.weekday + ', ' + entry.formattedDate) + '</div>';
+                    html += '<div class="agenda-day-subtitle">' + entry.items.length + ' item(ns)</div></div>';
+                    html += '<div class="agenda-day-tags">';
+                    entry.tags.forEach(tag => {
+                        html += '<span class="agenda-day-tag' + (tag.className ? ' ' + tag.className : '') + '">' + escapeAgendaHtml(tag.text) + '</span>';
+                    });
+                    html += '</div></div>';
+                    html += '<div class="agenda-item-list">';
+                    entry.items.forEach(item => {
+                        html += '<div class="agenda-item">';
+                        html += '<span class="agenda-item-kind kind-' + item.kind + '">' + escapeAgendaHtml(item.label) + '</span>';
+                        html += '<div class="agenda-item-text">' + escapeAgendaHtml(item.text) + '</div>';
+                        html += '</div>';
+                    });
+                    html += '</div></article>';
+                });
+                html += '</section>';
+            });
+
+            agendaView.innerHTML = html;
+        }
+
+        function setEscalaView(mode) {
+            escalaViewMode = mode;
+            const isAgenda = mode === 'agenda';
+            document.getElementById('page-escala').classList.toggle('agenda-mode', isAgenda);
+            updateEscalaViewToggle(mode);
+            if (isAgenda) renderAgenda();
+            else showMonth(currentMonthIndex);
+        }
+
+        function setCollapsiblePanelCollapsed(panel, collapsed) {
+            panel.classList.toggle('collapsed', collapsed);
+            const toggle = panel.querySelector('.collapse-toggle');
+            if (!toggle) return;
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            const icon = toggle.querySelector('.collapse-toggle-icon');
+            const text = toggle.querySelector('.collapse-toggle-text');
+            if (icon) icon.textContent = collapsed ? '+' : '-';
+            if (text) text.textContent = collapsed ? 'Expandir' : 'Minimizar';
+        }
+
+        function toggleCollapsiblePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            setCollapsiblePanelCollapsed(panel, !panel.classList.contains('collapsed'));
+        }
+
+        function initializeCollapsibleTables() {
+            document.querySelectorAll('.tabela-container').forEach((panel, index) => {
+                if (panel.dataset.collapsibleInitialized === 'true') return;
+                const header = Array.from(panel.children).find(child => child.classList.contains('tabela-header'));
+                if (!header) return;
+                const title = header.textContent.trim();
+                if (!title.startsWith('Plantões Especiais') && !title.startsWith('Projetos')) return;
+
+                panel.classList.add('collapsible-panel', 'table-collapsible');
+                panel.id = panel.id || 'tableCollapsiblePanel' + index;
+
+                const content = document.createElement('div');
+                content.className = 'collapsible-panel-content';
+                Array.from(panel.childNodes).forEach(node => {
+                    if (node !== header) content.appendChild(node);
+                });
+                panel.appendChild(content);
+
+                header.textContent = '';
+                const titleEl = document.createElement('span');
+                titleEl.className = 'tabela-header-title';
+                titleEl.textContent = title;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'collapse-toggle';
+                button.setAttribute('aria-expanded', 'true');
+                button.innerHTML = '<span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span>';
+                button.addEventListener('click', () => toggleCollapsiblePanel(panel.id));
+                header.appendChild(titleEl);
+                header.appendChild(button);
+                panel.dataset.collapsibleInitialized = 'true';
+            });
+        }
+
+        initializeCollapsibleTables();
 
         // Always show year selector and default to current year
         document.getElementById('yearSelector').classList.add('visible');
@@ -7695,6 +7990,7 @@
             document.querySelectorAll('.calendar').forEach(cal => {
                 cal.classList.toggle('show-folgas', show);
             });
+            if (escalaViewMode === 'agenda') renderAgenda();
         }
 
         function filterTablesByYear(year) {
@@ -7737,6 +8033,7 @@
         if (todayEl) todayEl.classList.add('today');
 
         showMonth(findCurrentMonth());
+        updateEscalaViewToggle(escalaViewMode);
 
         function toggleAll(checkbox) {
             const checked = checkbox.checked;
@@ -7776,6 +8073,7 @@
             document.getElementById('activityFilters').classList.toggle('visible', anySelected);
             if (anySelected) updateActivityFilterPanel();
             filterActivity();
+            if (escalaViewMode === 'agenda') renderAgenda();
         }
 
         function updateActivityFilterPanel() {
@@ -7840,6 +8138,7 @@
             const allResidentCbs = document.querySelectorAll('.act-pessoa-filter');
             if (allActCbs.length === 0 && allResidentCbs.length === 0) {
                 document.querySelectorAll('.cycle-badge.hidden-activity').forEach(b => b.classList.remove('hidden-activity'));
+                if (escalaViewMode === 'agenda') renderAgenda();
                 return;
             }
             const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.activity);
@@ -7863,6 +8162,7 @@
             }
             allActCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
             allResidentCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
+            if (escalaViewMode === 'agenda') renderAgenda();
         }
 
         function toggleAllActivities(checkbox) {
@@ -7883,13 +8183,33 @@
             filterActivity();
         }
 
+        let icsLastFocusedElement = null;
+
         function openIcsModal() {
-            document.getElementById('icsModal').classList.add('active');
+            const overlay = document.getElementById('icsModal');
+            const dialog = overlay?.querySelector('.ics-modal');
+            icsLastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+            if (!overlay || !dialog) return;
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
+            dialog.focus();
         }
 
         function closeIcsModal() {
-            document.getElementById('icsModal').classList.remove('active');
+            const overlay = document.getElementById('icsModal');
+            if (!overlay) return;
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+            if (icsLastFocusedElement && typeof icsLastFocusedElement.focus === 'function') {
+                icsLastFocusedElement.focus();
+            }
         }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.getElementById('icsModal')?.classList.contains('active')) {
+                closeIcsModal();
+            }
+        });
 
         function generateIcs(pessoa) {
             var startMonth = document.getElementById('icsStart').value;
@@ -8010,6 +8330,7 @@
         function fD2(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}
         function fM2(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')}
         function ds2(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+        function pKey2(r){return r.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()}
         function isFT2(d){return d.getDay()===2&&d.getDate()<=7}
         function inR2(d){return d>=pd2(REC2[0])&&d<=pd2(REC2[1])}
         function inC2(d){return d>=pd2(CON2[0])&&d<=pd2(CON2[1])}
@@ -8081,11 +8402,12 @@
             fd.innerHTML=fh;
             const tl=document.getElementById('acTimelineContainer');let th2='';
             entries.filter(e=>!e.skip).forEach(e=>{const p=[];if(e.article)p.push('<span class="ac-b-art">📄 '+e.article+'</span>');if(e.aulaR2)p.push('<span class="ac-b-aula">📚 '+e.aulaR2+'</span>');if(e.caseR2)p.push('<span class="ac-b-caso">🏥 '+e.caseR2+'</span>');if(!p.length)return;const ph=e.pc?'<span class="ac-tl-phase ac-phase-post">PÓS</span>':'<span class="ac-tl-phase ac-phase-pre">PRÉ</span>';const dt=e.aulaR2?' <span class="ac-tl-detail">— '+e.topic+'</span>':'';th2+='<div class="ac-tl-item"><span class="ac-tl-date">'+fM2(e.date)+'</span><div class="ac-tl-badges">'+ph+' '+p.join(' ')+dt+'</div></div>'});
-            tl.innerHTML=th2;acGoToMonth(0)
+            tl.innerHTML=th2;acGoToToday()
         };
         let acCm=0;
         window.acGoToMonth=function(i){i=+i;acCm=i;document.querySelectorAll('.ac-schedule-card').forEach((c,j)=>c.classList.toggle('active',j===i));document.getElementById('acMonthSelect').value=i};
         window.acNavMonth=function(d){const n=Math.max(0,Math.min(document.querySelectorAll('.ac-schedule-card').length-1,acCm+d));acGoToMonth(n)};
+        window.acGoToToday=function(){const d=new Date(),sel=document.getElementById('acMonthSelect'),label=MO2[d.getMonth()+1]+' '+d.getFullYear();let i=Array.from(sel.options).findIndex(o=>o.textContent===label);if(i<0)i=0;acGoToMonth(i);requestAnimationFrame(()=>{const a=document.querySelector('.ac-schedule-card.active');const row=Array.from(a?.querySelectorAll('.date-col')||[]).find(td=>td.textContent.trim()===fM2(d))?.closest('tr');(row||a)?.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'})})};
         window.acToggleAll=function(el){document.querySelectorAll('.acpf').forEach(cb=>{cb.checked=el.checked});acApplyFilter()};
         window.acApplyFilter=function(){const sel=Array.from(document.querySelectorAll('.acpf:checked')).map(c=>c.dataset.name);
         document.querySelectorAll('.acpf').forEach(c=>c.parentElement.classList.toggle('active',c.checked));
@@ -8107,17 +8429,17 @@
                     html += `<span class="cal-ac-badge cal-ac-skip">❌ S/ Reunião</span>`;
                 } else {
                     if (e.aulaR2) {
-                        const name = e.aulaR2.toUpperCase();
+                        const name = pKey2(e.aulaR2);
                         html += `<span class="cal-ac-badge cal-ac-aula" data-pessoas="${name}">📚 ${e.aulaR2}</span>`;
                         ps.add(name);
                     }
                     if (e.caseR2) {
-                        const name = e.caseR2.toUpperCase();
+                        const name = pKey2(e.caseR2);
                         html += `<span class="cal-ac-badge cal-ac-caso" data-pessoas="${name}">🏥 ${e.caseR2}</span>`;
                         ps.add(name);
                     }
                     if (e.article) {
-                        const name = e.article.toUpperCase();
+                        const name = pKey2(e.article);
                         html += `<span class="cal-ac-badge cal-ac-art" data-pessoas="${name}">📄 ${e.article}</span>`;
                         ps.add(name);
                     }
