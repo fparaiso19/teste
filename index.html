@@ -8388,9 +8388,12 @@ void main() {
 <div class="day-number">29</div>
 </div>
 </div></div>
-    <div class="legenda">
-        <h3>Legenda:</h3>
-        <div class="legenda-items">
+    <div class="legenda collapsible-panel collapsed" id="calendarLegendPanel">
+        <div class="collapsible-panel-header">
+            <h3>Legenda:</h3>
+            <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('calendarLegendPanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
+        </div>
+        <div class="legenda-items collapsible-panel-content">
             <div class="legenda-item"><div class="legenda-color" style="background: var(--weekend-bg); border: 1px solid var(--border-color);"></div> Fim de semana</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--feriado-bg); border: 1px solid var(--border-color);"></div> Feriado</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--recesso-bg); border: 1px solid var(--border-color);"></div> Recesso</div>
