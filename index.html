@@ -891,7 +891,70 @@
         .ciclo-card td.ciclo-act-cir { background: rgba(76,175,122,0.08); font-weight: 500; }
         .ciclo-card td.ciclo-act-po { background: rgba(48,176,208,0.08); font-weight: 500; }
         .ciclo-card td.ciclo-slot-label { background: var(--bg-secondary); font-weight: 600; text-align: left; padding-left: 10px; white-space: nowrap; }
-        @media (max-width: 600px) { .ciclo-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) {
+            .ciclo-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 12px;
+            }
+            #ciclos2-section > .collapsible-panel-content,
+            #miniciclos-section > .collapsible-panel-content {
+                padding: 8px !important;
+            }
+            .ciclo-card {
+                min-width: 0;
+            }
+            .ciclo-card-header {
+                flex-wrap: wrap;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .ciclo-card-header .ciclo-ps-info {
+                flex: 1 1 150px;
+                min-width: 0;
+                overflow-wrap: anywhere;
+                line-height: 1.35;
+            }
+            .ciclo-card-header .collapse-toggle {
+                margin-left: auto;
+            }
+            .ciclo-card .collapsible-panel-content {
+                overflow-x: hidden;
+            }
+            .ciclo-card table {
+                width: 100%;
+                min-width: 0;
+                table-layout: fixed;
+            }
+            .ciclo-card th,
+            .ciclo-card td {
+                padding: 6px 4px;
+                font-size: 0.74em;
+                line-height: 1.35;
+                overflow-wrap: anywhere;
+                word-break: normal;
+                hyphens: auto;
+            }
+            .ciclo-card th:first-child,
+            .ciclo-card td:first-child {
+                width: 42px !important;
+            }
+            .ciclo-card td.ciclo-slot-label {
+                padding-left: 2px;
+                text-align: center;
+                white-space: normal;
+            }
+        }
+        @media (max-width: 400px) {
+            .ciclo-card th,
+            .ciclo-card td {
+                padding: 5px 3px;
+                font-size: 0.68em;
+            }
+            .ciclo-card th:first-child,
+            .ciclo-card td:first-child {
+                width: 38px !important;
+            }
+        }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-page); }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
