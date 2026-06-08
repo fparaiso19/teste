@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
     <title>Escala Residência 2025-2027</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -323,6 +324,31 @@
         .evento.plastica-ocular { background: #673AB7; color: white; }
         .evento.glaucoma-cirurgico { background: #3F51B5; color: white; }
         .evento.extra-ps { background: #D44D4D; color: white; }
+        .troca-confirmada {
+            position: relative;
+            border: 1px solid rgba(212,148,58,0.7);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        .troca-confirmada::before {
+            content: "Troca";
+            display: inline-block;
+            margin-right: 5px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: rgba(212,148,58,0.22);
+            color: #ffd38a;
+            font-size: 0.82em;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .troca-origem {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255,255,255,0.78);
+            font-size: 0.9em;
+            font-style: italic;
+        }
         .ps-badge {
             background: var(--primary);
             color: white;
@@ -463,6 +489,9 @@
         .agenda-item-kind.kind-plantao { background: var(--primary); }
         .agenda-item-kind.kind-ps { background: var(--primary); }
         .agenda-item-kind.kind-evento { background: #D4943A; }
+        .agenda-item-kind.kind-troca-plantao,
+        .agenda-item-kind.kind-troca-ps { background: #B7782E; }
+        .agenda-item-kind.kind-troca-evento { background: #A9652A; }
         .agenda-item-kind.kind-ciclo { background: #00897B; }
         .agenda-item-kind.kind-aula { background: #1565C0; }
         .agenda-item-kind.kind-caso { background: #C62828; }
@@ -763,15 +792,17 @@
         }
         .page-content { display: none; }
         .page-content.active { display: block; }
-        #page-aulas, #page-ciclos { max-width: 1100px; margin: 0 auto; }
+        #page-aulas, #page-ciclos, #page-trocas { max-width: 1100px; margin: 0 auto; }
         #page-aulas .ac-header,
-        #page-ciclos .ac-header {
+        #page-ciclos .ac-header,
+        #page-trocas .ac-header {
             text-align: center;
             margin: 0 calc(50% - 50vw) 28px;
             padding: 44px max(20px, calc((100vw - 1100px) / 2 + 20px)) 18px;
         }
         #page-aulas .ac-header h1,
-        #page-ciclos .ac-header h1 {
+        #page-ciclos .ac-header h1,
+        #page-trocas .ac-header h1 {
             font-family: 'Playfair Display', Georgia, serif;
             color: var(--text-primary);
             margin-bottom: 8px;
@@ -781,13 +812,15 @@
             letter-spacing: 0;
         }
         #page-aulas .ac-header p,
-        #page-ciclos .ac-header p {
+        #page-ciclos .ac-header p,
+        #page-trocas .ac-header p {
             color: var(--text-secondary);
             font-size: 1em;
             letter-spacing: 0.02em;
         }
         #page-aulas .ac-header::after,
-        #page-ciclos .ac-header::after {
+        #page-ciclos .ac-header::after,
+        #page-trocas .ac-header::after {
             content: '';
             display: block;
             width: 60px;
@@ -799,14 +832,140 @@
         }
         @media (max-width: 760px) {
             #page-aulas .ac-header h1,
-            #page-ciclos .ac-header h1 {
+            #page-ciclos .ac-header h1,
+            #page-trocas .ac-header h1 {
                 font-size: 3em;
             }
         }
         @media (max-width: 420px) {
             #page-aulas .ac-header h1,
-            #page-ciclos .ac-header h1 {
+            #page-ciclos .ac-header h1,
+            #page-trocas .ac-header h1 {
                 font-size: 2.35em;
+            }
+        }
+        .trocas-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+        .troca-request-btn {
+            background: rgba(48,176,208,0.14);
+            color: var(--primary);
+            border: 1px solid rgba(48,176,208,0.34);
+            padding: 10px 16px;
+            border-radius: 7px;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .troca-request-btn:hover {
+            background: rgba(48,176,208,0.22);
+            border-color: rgba(48,176,208,0.5);
+        }
+        .troca-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 24px var(--shadow);
+        }
+        .troca-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .troca-card h3 {
+            color: var(--text-primary);
+            font-size: 1.05em;
+            font-weight: 700;
+        }
+        .trocas-list {
+            display: grid;
+            gap: 14px;
+        }
+        .troca-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: rgba(212,148,58,0.18);
+            color: #ffd38a;
+            border: 1px solid rgba(212,148,58,0.34);
+            font-size: 0.76em;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .troca-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: stretch;
+        }
+        .troca-assignment {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .troca-date {
+            color: var(--today-accent);
+            font-weight: 800;
+            font-size: 0.95em;
+            margin-bottom: 4px;
+        }
+        .troca-kind {
+            color: var(--text-muted);
+            font-size: 0.82em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        .troca-person {
+            color: var(--text-primary);
+            font-size: 1.02em;
+            font-weight: 700;
+        }
+        .troca-detail {
+            color: var(--text-secondary);
+            font-size: 0.86em;
+            margin-top: 5px;
+        }
+        .troca-modal-note {
+            background: rgba(212,148,58,0.12);
+            border: 1px solid rgba(212,148,58,0.28);
+            color: #ffd38a;
+            border-radius: 7px;
+            padding: 10px 12px;
+            font-size: 0.86em;
+            line-height: 1.4;
+            margin-top: 16px;
+        }
+        .troca-arrow {
+            display: flex;
+            align-items: center;
+            color: var(--today-accent);
+            font-weight: 900;
+            font-size: 1.3em;
+        }
+        @media (max-width: 700px) {
+            .troca-flow {
+                grid-template-columns: 1fr;
+            }
+            .troca-arrow {
+                justify-content: center;
+            }
+            .trocas-toolbar {
+                justify-content: stretch;
+            }
+            .troca-request-btn {
+                width: 100%;
             }
         }
         .ac-nav {
@@ -1503,6 +1662,7 @@ void main() {
             <button class="page-tab active" onclick="switchPage('escala')">Escala</button>
             <button class="page-tab" onclick="switchPage('aulas')">Aulas</button>
             <button class="page-tab" onclick="switchPage('ciclos')">Ciclos</button>
+            <button class="page-tab" onclick="switchPage('trocas')">Trocas</button>
         </div>
         <div class="top-mode-indicator" aria-label="Tema escuro fixo">
             <span aria-hidden="true">☾</span>
@@ -1534,39 +1694,39 @@ void main() {
 <li>Nenhum conflito encontrado!</li>        </ul>
     </div>
 
-    <div class="filters collapsible-panel" id="residentFilterPanel">
+    <div class="filters collapsible-panel collapsed" id="residentFilterPanel">
         <div class="collapsible-panel-header">
             <h3>Filtrar por Residente:</h3>
-            <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
+            <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
         </div>
         <div class="collapsible-panel-content">
             <div class="filter-group">
                 <label class="filter-item">
-                    <input type="checkbox" id="all" onchange="toggleAll(this)"> Todos
+                    <input type="checkbox" id="all" checked onchange="toggleAll(this)"> Todos
                 </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="ARTHUR" onchange="filterPessoa()"> ARTHUR
+                <input type="checkbox" class="pessoa-filter" data-pessoa="ARTHUR" checked onchange="filterPessoa()"> ARTHUR
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="FELIPE" onchange="filterPessoa()"> FELIPE
+                <input type="checkbox" class="pessoa-filter" data-pessoa="FELIPE" checked onchange="filterPessoa()"> FELIPE
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="FERNANDA" onchange="filterPessoa()"> FERNANDA
+                <input type="checkbox" class="pessoa-filter" data-pessoa="FERNANDA" checked onchange="filterPessoa()"> FERNANDA
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="JOAO" onchange="filterPessoa()"> JOAO
+                <input type="checkbox" class="pessoa-filter" data-pessoa="JOAO" checked onchange="filterPessoa()"> JOAO
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="LEONARDO" onchange="filterPessoa()"> LEONARDO
+                <input type="checkbox" class="pessoa-filter" data-pessoa="LEONARDO" checked onchange="filterPessoa()"> LEONARDO
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="MARINA" onchange="filterPessoa()"> MARINA
+                <input type="checkbox" class="pessoa-filter" data-pessoa="MARINA" checked onchange="filterPessoa()"> MARINA
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="THAUANNA" onchange="filterPessoa()"> THAUANNA
+                <input type="checkbox" class="pessoa-filter" data-pessoa="THAUANNA" checked onchange="filterPessoa()"> THAUANNA
             </label>
             <label class="filter-item">
-                <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" onchange="filterPessoa()"> VICTORIA
+                <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" checked onchange="filterPessoa()"> VICTORIA
             </label>
             </div>
             <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
@@ -1580,16 +1740,16 @@ void main() {
         </div>
     </div>
 
-    <div class="activity-filters collapsible-panel" id="activityFilters">
+    <div class="activity-filters collapsible-panel collapsed" id="activityFilters">
         <div class="collapsible-panel-header">
             <h3>Filtrar Atividades do Ciclo R2:</h3>
-            <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('activityFilters')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
+            <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('activityFilters')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
         </div>
         <div class="collapsible-panel-content">
             <div class="activity-filter-section" id="activityResidentSection"></div>
             <div class="activity-filter-section">
-                <label class="activity-filter-item active">
-                    <input type="checkbox" id="actFilterAll" checked onchange="toggleAllActivities(this)"> Todas as atividades
+                <label class="activity-filter-item">
+                    <input type="checkbox" id="actFilterAll" onchange="toggleAllActivities(this)"> Todas as atividades
                 </label>
             </div>
             <div id="activityFilterGroups"></div>
@@ -5179,15 +5339,15 @@ void main() {
 <span class="ferias" data-pessoas="ARTHUR">Férias: ARTHUR</span>
 <span class="folga" data-pessoas="ARTHUR">Folga: ARTHUR</span>
 </div>
-<div class="day weekend finalDeSemana" data-pessoas="VICTORIA,LEONARDO,THAUANNA,FELIPE,JOAO,ARTHUR" data-date="2026-06-13">
+<div class="day weekend finalDeSemana" data-pessoas="VICTORIA,LEONARDO,THAUANNA,FELIPE,MARINA,ARTHUR" data-date="2026-06-13">
 <div class="day-number">13</div>
 <div class="day-label finalDeSemana">Final de Semana</div>
 <span class="plantao" data-pessoas="VICTORIA">VICTORIA</span>
-<span class="evento transplante" data-pessoas="LEONARDO,THAUANNA,FELIPE,JOAO">Transplante: LEONARDO, THAUANNA, FELIPE, JOAO</span>
+<span class="evento transplante troca-confirmada" data-pessoas="LEONARDO,THAUANNA,FELIPE,MARINA" data-troca-original="JOAO" data-troca-final="MARINA">Transplante: LEONARDO, THAUANNA, FELIPE, MARINA <span class="troca-origem">Troca: era JOAO</span></span>
 <span class="ferias" data-pessoas="ARTHUR">Férias: ARTHUR</span>
 <span class="folga" data-pessoas="ARTHUR">Folga: ARTHUR</span>
 <span class="folga" data-pessoas="FERNANDA">Folga: FERNANDA</span>
-<span class="folga" data-pessoas="MARINA">Folga: MARINA</span>
+<span class="folga" data-pessoas="JOAO">Folga: JOAO</span>
 </div>
 <div class="day weekend finalDeSemana" data-pessoas="VICTORIA,ARTHUR,LEONARDO,THAUANNA" data-date="2026-06-14">
 <div class="day-number">14</div>
@@ -5453,14 +5613,14 @@ void main() {
 <span class="ferias" data-pessoas="THAUANNA">Férias: THAUANNA</span>
 <span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
 </div>
-<div class="day weekend finalDeSemana" data-pessoas="ARTHUR,FERNANDA,MARINA,LEONARDO,VICTORIA,THAUANNA" data-date="2026-07-18">
+<div class="day weekend finalDeSemana" data-pessoas="ARTHUR,FERNANDA,JOAO,LEONARDO,VICTORIA,THAUANNA" data-date="2026-07-18">
 <div class="day-number">18</div>
 <div class="day-label finalDeSemana">Final de Semana</div>
 <span class="plantao" data-pessoas="ARTHUR">ARTHUR</span>
-<span class="evento transplante" data-pessoas="FERNANDA,MARINA,LEONARDO,VICTORIA">Transplante: FERNANDA, MARINA, LEONARDO, VICTORIA</span>
+<span class="evento transplante troca-confirmada" data-pessoas="FERNANDA,JOAO,LEONARDO,VICTORIA" data-troca-original="MARINA" data-troca-final="JOAO">Transplante: FERNANDA, JOAO, LEONARDO, VICTORIA <span class="troca-origem">Troca: era MARINA</span></span>
 <span class="ferias" data-pessoas="THAUANNA">Férias: THAUANNA</span>
 <span class="folga" data-pessoas="FELIPE">Folga: FELIPE</span>
-<span class="folga" data-pessoas="JOAO">Folga: JOAO</span>
+<span class="folga" data-pessoas="MARINA">Folga: MARINA</span>
 <span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
 </div>
 <div class="day weekend finalDeSemana" data-pessoas="ARTHUR,THAUANNA,FELIPE,JOAO" data-date="2026-07-19">
@@ -5827,16 +5987,16 @@ void main() {
 <span class="ferias" data-pessoas="VICTORIA">Férias: VICTORIA</span>
 <span class="folga" data-pessoas="VICTORIA">Folga: VICTORIA</span>
 </div>
-<div class="day weekend feriado" data-pessoas="JOAO,VICTORIA" data-date="2026-09-05">
+<div class="day weekend feriado" data-pessoas="MARINA,VICTORIA" data-date="2026-09-05">
 <div class="day-number">5</div>
 <div class="day-label feriado">Feriado</div>
-<span class="plantao" data-pessoas="JOAO">JOAO</span>
+<span class="plantao troca-confirmada" data-pessoas="MARINA" data-troca-original="JOAO" data-troca-final="MARINA" data-troca-tipo="PS">MARINA <span class="troca-origem">Troca: era JOAO</span></span>
 <span class="ferias" data-pessoas="VICTORIA">Férias: VICTORIA</span>
 <span class="folga" data-pessoas="ARTHUR">Folga: ARTHUR</span>
 <span class="folga" data-pessoas="FELIPE">Folga: FELIPE</span>
 <span class="folga" data-pessoas="FERNANDA">Folga: FERNANDA</span>
 <span class="folga" data-pessoas="LEONARDO">Folga: LEONARDO</span>
-<span class="folga" data-pessoas="MARINA">Folga: MARINA</span>
+<span class="folga" data-pessoas="JOAO">Folga: JOAO</span>
 <span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
 <span class="folga" data-pessoas="VICTORIA">Folga: VICTORIA</span>
 </div>
@@ -5853,15 +6013,15 @@ void main() {
 <span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
 <span class="folga" data-pessoas="VICTORIA">Folga: VICTORIA</span>
 </div>
-<div class="day feriado" data-pessoas="MARINA,VICTORIA" data-date="2026-09-07">
+<div class="day feriado" data-pessoas="JOAO,VICTORIA" data-date="2026-09-07">
 <div class="day-number">7</div>
 <div class="day-label feriado">Feriado</div>
-<span class="plantao" data-pessoas="MARINA">MARINA</span>
+<span class="plantao troca-confirmada" data-pessoas="JOAO" data-troca-original="MARINA" data-troca-final="JOAO" data-troca-tipo="PS">JOAO <span class="troca-origem">Troca: era MARINA</span></span>
 <span class="ferias" data-pessoas="VICTORIA">Férias: VICTORIA</span>
 <span class="folga" data-pessoas="ARTHUR">Folga: ARTHUR</span>
 <span class="folga" data-pessoas="FELIPE">Folga: FELIPE</span>
 <span class="folga" data-pessoas="FERNANDA">Folga: FERNANDA</span>
-<span class="folga" data-pessoas="JOAO">Folga: JOAO</span>
+<span class="folga" data-pessoas="MARINA">Folga: MARINA</span>
 <span class="folga" data-pessoas="LEONARDO">Folga: LEONARDO</span>
 <span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
 <span class="folga" data-pessoas="VICTORIA">Folga: VICTORIA</span>
@@ -8556,6 +8716,7 @@ void main() {
             <div class="legenda-item"><div class="legenda-color" style="background: var(--cbo-bg); border: 1px solid var(--border-color);"></div> CBO</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--final-de-semana-bg); border: 1px solid var(--border-color);"></div> Final de Semana</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--primary);"></div> Plantão</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: rgba(212,148,58,0.22); border: 1px solid rgba(212,148,58,0.7);"></div> Troca confirmada</div>
             <div class="legenda-item"><div class="legenda-color" style="background: #4caf50;"></div> Catarata</div>
             <div class="legenda-item"><div class="legenda-color" style="background: #ff9800;"></div> Transplante</div>
             <div class="legenda-item"><div class="legenda-color" style="background: #9c27b0;"></div> Triagem Pterígio</div>
@@ -8718,6 +8879,61 @@ void main() {
             </div>
         </div>
     </div><!-- end page-ciclos -->
+    <div id="page-trocas" class="page-content">
+        <div class="ac-header">
+            <div class="hero-eyebrow">Programa de Residência</div>
+            <h1>Trocas</h1>
+            <p>Permutas confirmadas · solicitações pendentes</p>
+        </div>
+        <div class="trocas-toolbar">
+            <button type="button" class="troca-request-btn" onclick="openTrocaForm()">Solicitar troca</button>
+        </div>
+        <div class="trocas-list" aria-label="Trocas confirmadas">
+            <article class="troca-card">
+                <div class="troca-card-header">
+                    <h3>PS · Setembro 2026</h3>
+                    <span class="troca-status">Confirmada</span>
+                </div>
+                <div class="troca-flow">
+                    <div class="troca-assignment">
+                        <div class="troca-date">05/09/2026</div>
+                        <div class="troca-kind">PS</div>
+                        <div class="troca-person">Marina Abritta</div>
+                        <div class="troca-detail">Responsável original: João Eden</div>
+                    </div>
+                    <div class="troca-arrow" aria-hidden="true">↔</div>
+                    <div class="troca-assignment">
+                        <div class="troca-date">07/09/2026</div>
+                        <div class="troca-kind">PS</div>
+                        <div class="troca-person">João Eden</div>
+                        <div class="troca-detail">Responsável original: Marina Abritta</div>
+                    </div>
+                </div>
+            </article>
+            <article class="troca-card">
+                <div class="troca-card-header">
+                    <h3>Projeto · Junho/Julho 2026</h3>
+                    <span class="troca-status">Confirmada</span>
+                </div>
+                <div class="troca-flow">
+                    <div class="troca-assignment">
+                        <div class="troca-date">13/06/2026</div>
+                        <div class="troca-kind">Projeto</div>
+                        <div class="troca-person">Marina Abritta</div>
+                        <div class="troca-detail">Responsável original: João Eden</div>
+                    </div>
+                    <div class="troca-arrow" aria-hidden="true">↔</div>
+                    <div class="troca-assignment">
+                        <div class="troca-date">18/07/2026</div>
+                        <div class="troca-kind">Projeto</div>
+                        <div class="troca-person">João Eden</div>
+                        <div class="troca-detail">Responsável original: Marina Abritta</div>
+                    </div>
+                </div>
+            </article>
+        </div>
+        <div class="troca-modal-note">Para solicitar uma troca, use o formulário do Google. O pedido vai para a planilha do admin e é avaliado lá.</div>
+    </div><!-- end page-trocas -->
     <script>
         let escalaViewMode = 'calendar';
         let currentMonthIndex = 0;
@@ -8840,8 +9056,13 @@ void main() {
         }
 
         function getAgendaItemMeta(el) {
-            if (el.classList.contains('plantao')) return {kind: 'plantao', label: 'Plantão'};
-            if (el.classList.contains('ps-badge')) return {kind: 'ps', label: 'PS'};
+            const isTroca = el.classList.contains('troca-confirmada');
+            if (el.classList.contains('plantao')) {
+                const trocaLabel = el.dataset.trocaTipo === 'PS' ? 'PS · Troca' : 'Plantão · Troca';
+                const trocaKind = el.dataset.trocaTipo === 'PS' ? 'troca-ps' : 'troca-plantao';
+                return {kind: isTroca ? trocaKind : 'plantao', label: isTroca ? trocaLabel : 'Plantão'};
+            }
+            if (el.classList.contains('ps-badge')) return {kind: isTroca ? 'troca-ps' : 'ps', label: isTroca ? 'PS · Troca' : 'PS'};
             if (el.classList.contains('cycle-badge')) return {kind: 'ciclo', label: 'Ciclo'};
             if (el.classList.contains('cal-ac-aula')) return {kind: 'aula', label: 'Aula'};
             if (el.classList.contains('cal-ac-caso')) return {kind: 'caso', label: 'Caso'};
@@ -8849,7 +9070,7 @@ void main() {
             if (el.classList.contains('cal-ac-skip')) return {kind: 'skip', label: 'Sem Reunião'};
             if (el.classList.contains('ferias')) return {kind: 'ferias', label: 'Férias'};
             if (el.classList.contains('folga')) return {kind: 'folga', label: 'Folga'};
-            return {kind: 'evento', label: 'Projeto'};
+            return {kind: isTroca ? 'troca-evento' : 'evento', label: isTroca ? 'Projeto · Troca' : 'Projeto'};
         }
 
         function renderAgenda() {
@@ -9110,6 +9331,13 @@ void main() {
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
+        // Os filtros de atividade do ciclo nascem TODOS desmarcados (residentes
+        // e atividades), então as atividades do ciclo ficam ocultas no calendário
+        // até o usuário marcar algo. Enquanto o usuário não interagir com esses
+        // filtros, eles continuam desmarcados mesmo após as re-renderizações de
+        // init (há várias passagens de filterPessoa() ao carregar a página).
+        let activityFiltersUserInteracted = false;
+
         function updateActivityFilterPanel() {
             const activeMonth = document.querySelector('.month-container.active');
             if (!activeMonth) return;
@@ -9121,6 +9349,16 @@ void main() {
             const previouslyUncheckedResidents = new Set(
                 Array.from(document.querySelectorAll('.act-pessoa-filter:not(:checked)')).map(cb => cb.dataset.pessoa)
             );
+            // Enquanto o usuário não interagiu, trata todos os residentes E todas
+            // as atividades do ciclo como desmarcados (filtro nasce vazio e
+            // permanece vazio através das re-renderizações de init).
+            if (!activityFiltersUserInteracted) {
+                Array.from(document.querySelectorAll('.month-container.active .cycle-badge'))
+                    .forEach(badge => {
+                        previouslyUncheckedResidents.add(badge.dataset.pessoas);
+                        previouslyUncheckedActivities.add(badge.dataset.activity);
+                    });
+            }
             const activities = new Set();
             const residentsWithActivities = new Set();
             activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
@@ -9133,13 +9371,16 @@ void main() {
             const availableResidents = selectedPessoas.filter(pessoa => residentsWithActivities.has(pessoa));
             let residentHtml = '';
             if (availableResidents.length > 0) {
+                const allResidentsChecked = availableResidents.every(pessoa => !previouslyUncheckedResidents.has(pessoa));
+                const allResAttr = allResidentsChecked ? 'checked' : '';
+                const allResClass = allResidentsChecked ? 'active' : '';
                 residentHtml += '<span class="activity-filter-group-label">Residentes:</span><div class="activity-filter-group">';
-                residentHtml += '<label class="activity-filter-item active"><input type="checkbox" id="actResidentAll" checked onchange="toggleAllActivityResidents(this)"> Todos os residentes</label>';
+                residentHtml += `<label class="activity-filter-item ${allResClass}"><input type="checkbox" id="actResidentAll" ${allResAttr} onchange="toggleAllActivityResidents(this)"> Todos os residentes</label>`;
                 availableResidents.forEach(pessoa => {
                     const isChecked = !previouslyUncheckedResidents.has(pessoa);
                     const checkedAttr = isChecked ? 'checked' : '';
                     const activeClass = isChecked ? 'active' : '';
-                    residentHtml += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-pessoa-filter" data-pessoa="${pessoa}" ${checkedAttr} onchange="filterActivity()"> ${pessoa}</label>`;
+                    residentHtml += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-pessoa-filter" data-pessoa="${pessoa}" ${checkedAttr} onchange="onActivityFilterChange()"> ${pessoa}</label>`;
                 });
                 residentHtml += '</div>';
             }
@@ -9160,11 +9401,14 @@ void main() {
                     const isChecked = !previouslyUncheckedActivities.has(act);
                     const checkedAttr = isChecked ? 'checked' : '';
                     const activeClass = isChecked ? 'active' : '';
-                    html += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-filter" data-activity="${act}" ${checkedAttr} onchange="filterActivity()"> ${act}</label>`;
+                    html += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-filter" data-activity="${act}" ${checkedAttr} onchange="onActivityFilterChange()"> ${act}</label>`;
                 });
                 html += '</div>';
             }
             container.innerHTML = html;
+            // Aplica o filtro para refletir o estado atual (no carregamento
+            // inicial, tudo desmarcado => atividades do ciclo ficam ocultas).
+            filterActivity();
         }
 
         function filterActivity() {
@@ -9199,7 +9443,16 @@ void main() {
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
+        // Chamado pelo onchange dos checkboxes individuais de atividade/residente.
+        // Marca que o usuário interagiu (libera o estado "tudo desmarcado" inicial)
+        // e aplica o filtro.
+        function onActivityFilterChange() {
+            activityFiltersUserInteracted = true;
+            filterActivity();
+        }
+
         function toggleAllActivities(checkbox) {
+            activityFiltersUserInteracted = true;
             document.querySelectorAll('.act-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
@@ -9209,6 +9462,7 @@ void main() {
         }
 
         function toggleAllActivityResidents(checkbox) {
+            activityFiltersUserInteracted = true;
             document.querySelectorAll('.act-pessoa-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
@@ -9237,6 +9491,18 @@ void main() {
             if (icsLastFocusedElement && typeof icsLastFocusedElement.focus === 'function') {
                 icsLastFocusedElement.focus();
             }
+        }
+
+        // === SOLICITAR TROCA ===
+        // Formulário Google "Solicitação de Troca" (respostas caem na planilha do admin).
+        const TROCA_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSc_aOuuHaSX26lh8M-gS2xbodGnuacQzR8psq7PMxqtM4PZ0Q/viewform';
+
+        function openTrocaForm() {
+            if (!TROCA_FORM_URL || TROCA_FORM_URL.includes('REPLACE_ME')) {
+                alert('O formulário de trocas ainda não foi configurado. Avise o admin para cadastrar a URL do Google Forms.');
+                return;
+            }
+            window.open(TROCA_FORM_URL, '_blank', 'noopener');
         }
 
         document.addEventListener('keydown', function(event) {
@@ -9300,43 +9566,6 @@ void main() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-
-        // Analytics: collect and send visit data
-        (function() {
-            try {
-                var nav = navigator;
-                var conn = nav.connection || nav.mozConnection || nav.webkitConnection || {};
-                var data = {
-                    screenWidth: screen.width,
-                    screenHeight: screen.height,
-                    viewportWidth: window.innerWidth,
-                    viewportHeight: window.innerHeight,
-                    pixelRatio: window.devicePixelRatio,
-                    colorDepth: screen.colorDepth,
-                    touchPoints: nav.maxTouchPoints || 0,
-                    language: nav.language,
-                    languages: nav.languages ? nav.languages.join(',') : nav.language,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    timezoneOffset: new Date().getTimezoneOffset(),
-                    referrer: document.referrer,
-                    page: location.pathname,
-                    queryParams: location.search,
-                    cpuCores: nav.hardwareConcurrency,
-                    deviceMemory: nav.deviceMemory,
-                    connectionType: conn.effectiveType,
-                    downlink: conn.downlink,
-                    rtt: conn.rtt,
-                    cookiesEnabled: nav.cookieEnabled,
-                    dnt: nav.doNotTrack === '1'
-                };
-                fetch('https://southamerica-east1-escala-residencia-bos.cloudfunctions.net/log-visit', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data),
-                    mode: 'cors'
-                }).catch(function(){});
-            } catch(e) {}
-        })();
 
         // === PAGE SWITCHING ===
         function switchPage(page) {
@@ -9549,7 +9778,7 @@ void main() {
                         // Skip feriados, recessos, carnaval, cbo (plantões especiais já definidos)
                         if (cell.classList.contains('feriado') || cell.classList.contains('recesso') || cell.classList.contains('carnaval') || cell.classList.contains('cbo')) continue;
                         const hours = dayMap[dow];
-                        const nameUp = r.toUpperCase();
+                        const nameUp = r.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
                         const badge = document.createElement('span');
                         badge.className = 'ps-badge';
                         badge.dataset.pessoas = nameUp;
