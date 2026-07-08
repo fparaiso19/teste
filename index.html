@@ -6341,14 +6341,14 @@ void main() {
 <span class="ferias" data-pessoas="LEONARDO">Férias: LEONARDO</span>
 <span class="folga" data-pessoas="LEONARDO">Folga: LEONARDO</span>
 </div>
-<div class="day weekend finalDeSemana" data-pessoas="MARINA,FELIPE,VICTORIA,THAUANNA,JOAO,LEONARDO" data-date="2026-10-17">
+<div class="day weekend finalDeSemana" data-pessoas="MARINA,FELIPE,VICTORIA,FERNANDA,JOAO,LEONARDO" data-date="2026-10-17">
 <div class="day-number">17</div>
 <div class="day-label finalDeSemana">Final de Semana</div>
 <span class="plantao" data-pessoas="MARINA">MARINA</span>
-<span class="evento transplante" data-pessoas="FELIPE,VICTORIA,THAUANNA,JOAO">Transplante: FELIPE, VICTORIA, THAUANNA, JOAO</span>
+<span class="evento transplante troca-confirmada" data-pessoas="FELIPE,VICTORIA,FERNANDA,JOAO" data-troca-original="THAUANNA" data-troca-final="FERNANDA">Transplante: FELIPE, VICTORIA, FERNANDA, JOAO <span class="troca-origem">Troca: era THAUANNA</span></span>
 <span class="ferias" data-pessoas="LEONARDO">Férias: LEONARDO</span>
 <span class="folga" data-pessoas="ARTHUR">Folga: ARTHUR</span>
-<span class="folga" data-pessoas="FERNANDA">Folga: FERNANDA</span>
+<span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
 <span class="folga" data-pessoas="LEONARDO">Folga: LEONARDO</span>
 </div>
 <div class="day weekend finalDeSemana" data-pessoas="MARINA,LEONARDO,VICTORIA,THAUANNA" data-date="2026-10-18">
@@ -6510,15 +6510,15 @@ void main() {
 <span class="ferias" data-pessoas="MARINA">Férias: MARINA</span>
 <span class="folga" data-pessoas="MARINA">Folga: MARINA</span>
 </div>
-<div class="day weekend finalDeSemana" data-pessoas="LEONARDO,FERNANDA,VICTORIA,FELIPE,ARTHUR,MARINA" data-date="2026-11-07">
+<div class="day weekend finalDeSemana" data-pessoas="LEONARDO,THAUANNA,VICTORIA,FELIPE,ARTHUR,MARINA" data-date="2026-11-07">
 <div class="day-number">7</div>
 <div class="day-label finalDeSemana">Final de Semana</div>
 <span class="plantao" data-pessoas="LEONARDO">LEONARDO</span>
-<span class="evento transplante" data-pessoas="FERNANDA,VICTORIA,FELIPE,ARTHUR">Transplante: FERNANDA, VICTORIA, FELIPE, ARTHUR</span>
+<span class="evento transplante troca-confirmada" data-pessoas="THAUANNA,VICTORIA,FELIPE,ARTHUR" data-troca-original="FERNANDA" data-troca-final="THAUANNA">Transplante: THAUANNA, VICTORIA, FELIPE, ARTHUR <span class="troca-origem">Troca: era FERNANDA</span></span>
 <span class="ferias" data-pessoas="MARINA">Férias: MARINA</span>
 <span class="folga" data-pessoas="JOAO">Folga: JOAO</span>
 <span class="folga" data-pessoas="MARINA">Folga: MARINA</span>
-<span class="folga" data-pessoas="THAUANNA">Folga: THAUANNA</span>
+<span class="folga" data-pessoas="FERNANDA">Folga: FERNANDA</span>
 </div>
 <div class="day weekend finalDeSemana" data-pessoas="LEONARDO,MARINA,ARTHUR,FELIPE" data-date="2026-11-08">
 <div class="day-number">8</div>
@@ -8931,6 +8931,27 @@ void main() {
                     </div>
                 </div>
             </article>
+            <article class="troca-card">
+                <div class="troca-card-header">
+                    <h3>Projeto · Outubro/Novembro 2026</h3>
+                    <span class="troca-status">Confirmada</span>
+                </div>
+                <div class="troca-flow">
+                    <div class="troca-assignment">
+                        <div class="troca-date">17/10/2026</div>
+                        <div class="troca-kind">Projeto</div>
+                        <div class="troca-person">Fernanda</div>
+                        <div class="troca-detail">Responsável original: Thauanna</div>
+                    </div>
+                    <div class="troca-arrow" aria-hidden="true">↔</div>
+                    <div class="troca-assignment">
+                        <div class="troca-date">07/11/2026</div>
+                        <div class="troca-kind">Projeto</div>
+                        <div class="troca-person">Thauanna</div>
+                        <div class="troca-detail">Responsável original: Fernanda</div>
+                    </div>
+                </div>
+            </article>
         </div>
         <div class="troca-modal-note">Para solicitar uma troca, use o formulário do Google. O pedido vai para a planilha do admin e é avaliado lá.</div>
     </div><!-- end page-trocas -->
@@ -9635,8 +9656,32 @@ void main() {
             const rbl=[...RES2].sort((a,b)=>(cC[b]+arC[b])-(cC[a]+arC[a])||(cC[b]-cC[a]));
             const aT={};rbl.forEach((r,i)=>{const na=cC[r]+arC[r];aT[r]=Math.max(0,(i<ex3?bt+1:bt)-na)});
             aSlots.forEach(s=>{const d=s.d,k=ds2(d);if(!ut[k])ut[k]=new Set();const e=raw[s.i];let ex=new Set(ut[k]);if(e.article)ex.add(e.article);let av=avM2(d,ex);if(!av.length)return;av.sort((a,b)=>{const ra=aT[a]-aC[a],rb=aT[b]-aC[b];if(ra!==rb)return rb-ra;const ta=aC[a]+cC[a]+arC[a],tb=aC[b]+cC[b]+arC[b];if(ta!==tb)return ta-tb;return(d-(la[b]||new Date(2020,0,1)))-(d-(la[a]||new Date(2020,0,1)))});const ch=av[0];e.aulaR2=ch;aC[ch]++;la[ch]=d;ut[k].add(ch)});
-            const ms=new Set(raw.map(e=>ds2(e.date))),full=[];
-            allTue.forEach(d=>{const k=ds2(d);if(ms.has(k))full.push(raw.find(e=>ds2(e.date)===k));else{let r=[];if(isFT2(d)&&ds2(d)!==FTE2)r.push('1ª semana');if(HOL2.has(k))r.push('Feriado');if(inR2(d))r.push('Recesso');if(inC2(d))r.push('Congresso');full.push({date:new Date(d),skip:true,reason:r.join('; ')})}});
+            // --- DESLOCAMENTO DE UMA SEMANA A PARTIR DE 30/06/2026 ---
+            // A reunião de 30/06/2026 não aconteceu. Congelamos a atribuição original
+            // (tema+aula+caso+artigo+apresentador de cada reunião — já computada acima em `raw`)
+            // e apenas movemos cada atribuição, de 30/06 em diante, para a PRÓXIMA data de
+            // reunião válida. Ninguém é recalculado; só as datas escorregam. 30/06 fica vazia
+            // ("Reunião remanejada") e a última aula cai numa reunião extra em 09/03/2027.
+            const SHIFT_FROM='2026-06-30';
+            const splitIdx=raw.findIndex(e=>ds2(e.date)>=SHIFT_FROM);
+            if(splitIdx>=0){
+                const origDates=raw.map(e=>new Date(e.date));
+                // datas de reunião válidas para onde o conteúdo escorrega:
+                // entradas [splitIdx..fim] vão para as datas originais [splitIdx+1..fim] e +1 data extra no fim.
+                const targetDates=origDates.slice(splitIdx+1);
+                // gera a próxima data de reunião válida após a última original
+                let nd=new Date(origDates[origDates.length-1]);
+                while(true){nd.setDate(nd.getDate()+1);if(nd.getDay()===2&&!isFT2(nd)&&!HOL2.has(ds2(nd))&&!inR2(nd)&&!inC2(nd)){targetDates.push(new Date(nd));break;}}
+                for(let i=splitIdx;i<raw.length;i++){raw[i].date=new Date(targetDates[i-splitIdx]);}
+            }
+            const shiftedTue=raw.map(e=>ds2(e.date));
+            const lastTue=raw.length?raw[raw.length-1].date:null;
+            const ms=new Set(shiftedTue),full=[];
+            // percorre todas as terças do calendário, incluindo eventuais novas após o `end` original
+            const allTue2=allTue.slice();
+            if(lastTue){let d=new Date(allTue2[allTue2.length-1]);while(d<lastTue){d.setDate(d.getDate()+7);allTue2.push(new Date(d));}}
+            allTue2.forEach(d=>{const k=ds2(d);if(ms.has(k))full.push(raw.find(e=>ds2(e.date)===k));else{let r=[];if(k===SHIFT_FROM)r.push('Reunião remanejada');if(isFT2(d)&&ds2(d)!==FTE2)r.push('1ª semana');if(HOL2.has(k))r.push('Feriado');if(inR2(d))r.push('Recesso');if(inC2(d))r.push('Congresso');if(!r.length)return;full.push({date:new Date(d),skip:true,reason:r.join('; ')})}});
+            full.sort((a,b)=>a.date-b.date);
             return{entries:full,aC,cC,arC}
         }
         function acCBadge(t){if(t==='Fellow')return'<span class="ac-badge ac-badge-fellow">Fellow</span>';if(t==='R3')return'<span class="ac-badge ac-badge-r3">R3</span>';if(t==='R2')return'<span class="ac-badge ac-badge-r2">R2</span>';if(t==='R1')return'<span class="ac-badge ac-badge-r1">R1</span>';return t}
