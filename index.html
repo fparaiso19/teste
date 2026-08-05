@@ -691,6 +691,9 @@
         .cal-ac-caso { background: #C62828; }
         .cal-ac-art { background: #E65100; }
         .cal-ac-skip { background: var(--bg-tertiary); color: var(--text-muted); font-style: italic; font-weight: 500; border: 1px dotted var(--border-color); }
+        /* apresentador remanejado para dentro das próprias férias */
+        .cal-ac-vac { outline: 1px solid #F9A825; outline-offset: 1px; }
+        .ac-vac-warn { font-size: 0.9em; cursor: help; }
         .page-tabs {
             background: rgba(5,10,15,0.76);
             backdrop-filter: blur(18px);
@@ -1078,6 +1081,16 @@
         .ac-summary-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
         .ac-summary-table .total-row { font-weight: 600; background: var(--bg-tertiary); }
         .ac-summary-table td.name { text-align: left; font-weight: 500; }
+        /* --- Changelog --- */
+        .cl-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline; padding: 10px 16px 14px; border-bottom: 1px solid var(--border-color); }
+        .cl-stat { font-size: 0.88em; color: var(--text-secondary); }
+        .cl-stat strong { color: var(--text-primary); font-size: 1.15em; }
+        .cl-note { font-size: 0.8em; color: var(--text-muted); font-style: italic; flex-basis: 100%; }
+        .cl-empty { padding: 20px; text-align: center; color: var(--text-muted); }
+        .cl-table td.cl-topic { text-align: left; }
+        .cl-table .cl-from { color: var(--text-muted); text-decoration: line-through; white-space: nowrap; }
+        .cl-table .cl-to { color: var(--text-primary); font-weight: 600; white-space: nowrap; }
+        .cl-meta .cl-from { text-decoration: line-through; }
         .ac-schedule-card {
             background: var(--bg-card);
             border-radius: 12px;
@@ -1663,6 +1676,7 @@ void main() {
             <button class="page-tab" onclick="switchPage('aulas')">Aulas</button>
             <button class="page-tab" onclick="switchPage('ciclos')">Ciclos</button>
             <button class="page-tab" onclick="switchPage('trocas')">Trocas</button>
+            <button class="page-tab" onclick="switchPage('changelog')">Changelog</button>
         </div>
         <div class="top-mode-indicator" aria-label="Tema escuro fixo">
             <span aria-hidden="true">☾</span>
@@ -8846,7 +8860,7 @@ void main() {
         <div class="ac-congress">⚠️ <strong>Congresso:</strong> 08–13/09/2026 — sem atividades. A partir de 15/09, R2 assume aulas R=3, ciclo → Fellow→Fellow→R2→R1.<br>📋 <strong>Miniciclo (A,B,C,D,G):</strong> restringe elegibilidade até 08/05/2026 (férias Felipe).</div>
         <div class="ac-nav"><button class="nav-btn today-btn" id="acTodayBtn" onclick="acGoToToday()">Hoje</button><button class="nav-btn" onclick="acNavMonth(-1)">← Anterior</button><select class="ac-month-select" id="acMonthSelect" onchange="acGoToMonth(this.value)"></select><button class="nav-btn" onclick="acNavMonth(1)">Próximo →</button><button class="ac-print-btn" onclick="window.print()">🖨️ Exportar PDF</button></div>
         <div class="ac-filters"><h3>Filtrar por Residente:</h3><div class="ac-filter-group"><label class="ac-filter-item active"><input type="checkbox" id="acFilterAll" checked onchange="acToggleAll(this)"> Todos</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Felipe" checked onchange="acApplyFilter()"> Felipe</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="João" checked onchange="acApplyFilter()"> João</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Arthur" checked onchange="acApplyFilter()"> Arthur</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Leonardo" checked onchange="acApplyFilter()"> Leonardo</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Marina" checked onchange="acApplyFilter()"> Marina</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Fernanda" checked onchange="acApplyFilter()"> Fernanda</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Victoria" checked onchange="acApplyFilter()"> Victoria</label><label class="ac-filter-item active"><input type="checkbox" class="acpf" data-name="Thauanna" checked onchange="acApplyFilter()"> Thauanna</label></div></div>
-        <div class="ac-legenda"><h3>Legenda:</h3><div class="ac-legenda-items"><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#1565c0"></div> Aula R2</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#c62828"></div> Caso R2</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#e65100"></div> Artigo</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#7e57c2"></div> R3</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#43a047"></div> R1</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#78909c"></div> Fellow</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#e0e0e0"></div> Sem reunião</div></div></div>
+        <div class="ac-legenda"><h3>Legenda:</h3><div class="ac-legenda-items"><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#1565c0"></div> Aula R2</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#c62828"></div> Caso R2</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#e65100"></div> Artigo</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#7e57c2"></div> R3</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#43a047"></div> R1</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#78909c"></div> Fellow</div><div class="ac-legenda-item"><div class="ac-legenda-color" style="background:#e0e0e0"></div> Sem reunião</div><div class="ac-legenda-item">⚠️ Apresentador de férias</div></div></div>
         <div id="acScheduleContainer"></div>
         <div class="ac-summary-card collapsible-panel ac-card-collapsible collapsed" id="acSummaryPanel"><div class="ac-summary-header"><span>📊 Resumo da Distribuição (inclui pré-17/03)</span><button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('acSummaryPanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button></div><div class="collapsible-panel-content" style="overflow-x:auto"><table class="ac-summary-table"><thead><tr><th>Residente</th><th>📚 Aulas</th><th>🏥 Casos</th><th>📄 Artigos</th><th>Total</th><th>Férias</th></tr></thead><tbody id="acSummaryBody"></tbody></table></div></div>
         <div class="ac-timeline-card collapsible-panel ac-card-collapsible collapsed" id="acTimelinePanel"><div class="ac-summary-header"><span>📅 Cronograma de Apresentações R2</span><button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('acTimelinePanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button></div><div class="collapsible-panel-content"><div id="acTimelineContainer"></div></div></div>
@@ -8955,6 +8969,14 @@ void main() {
         </div>
         <div class="troca-modal-note">Para solicitar uma troca, use o formulário do Google. O pedido vai para a planilha do admin e é avaliado lá.</div>
     </div><!-- end page-trocas -->
+    <div id="page-changelog" class="page-content">
+        <div class="ac-header">
+            <div class="hero-eyebrow">Programa de Residência</div>
+            <h1>Changelog</h1>
+            <p>Histórico de remanejamentos · gerado a partir da própria escala</p>
+        </div>
+        <div id="changelogContainer"></div>
+    </div><!-- end page-changelog -->
     <script>
         let escalaViewMode = 'calendar';
         let currentMonthIndex = 0;
@@ -9561,6 +9583,25 @@ void main() {
                         events.push({ date: date, summary: summary });
                     }
                 });
+                // Aulas, casos e artigos. Os badges são injetados por injectAulasIntoCalendar
+                // a partir de acBuildSchedule, e já carregam data-pessoas no mesmo formato
+                // normalizado (pKey2) que o modal passa para generateIcs('JOAO').
+                day.querySelectorAll('.cal-ac-badge').forEach(function(el) {
+                    var pessoas = el.dataset.pessoas ? el.dataset.pessoas.split(',') : [];
+                    if (pessoas.indexOf(pessoa) < 0) return;
+                    var summary;
+                    if (el.classList.contains('cal-ac-aula')) {
+                        summary = 'Aula' + (el.dataset.topic ? ': ' + el.dataset.topic : '');
+                    } else if (el.classList.contains('cal-ac-caso')) {
+                        summary = 'Caso clínico';
+                    } else if (el.classList.contains('cal-ac-art')) {
+                        summary = 'Artigo';
+                    } else {
+                        return; // cal-ac-skip não vira evento
+                    }
+                    if (el.classList.contains('cal-ac-vac')) summary += ' (durante férias)';
+                    events.push({ date: date, summary: summary });
+                });
             });
             var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Escala Residencia//PT\r\nCALSCALE:GREGORIAN\r\n';
             events.forEach(function(ev) {
@@ -9572,7 +9613,10 @@ void main() {
                 ics += 'BEGIN:VEVENT\r\n';
                 ics += 'DTSTART;VALUE=DATE:' + dtstart + '\r\n';
                 ics += 'DTEND;VALUE=DATE:' + dtend + '\r\n';
-                ics += 'SUMMARY:' + ev.summary + '\r\n';
+                // RFC 5545: em valores TEXT, \ ; , e quebras de linha precisam de escape.
+                // Os temas das aulas vão para o SUMMARY e são editados à mão em TOP2, então
+                // uma vírgula futura truncaria silenciosamente o título no app de calendário.
+                ics += 'SUMMARY:' + String(ev.summary).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n') + '\r\n';
                 ics += 'UID:' + uid + '\r\n';
                 ics += 'END:VEVENT\r\n';
             });
@@ -9597,6 +9641,9 @@ void main() {
             if (page === 'aulas') {
                 if (!window._acRendered) { acRenderSchedule({scrollToToday:false}); window._acRendered = true; }
             }
+            if (page === 'changelog') {
+                if (!window._clRendered) { renderChangelog(); window._clRendered = true; }
+            }
             requestAnimationFrame(function() {
                 window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
                 document.documentElement.scrollTop = 0;
@@ -9611,6 +9658,9 @@ void main() {
         const TOP2=[["Exames I: Angiofluoresceinografia",3],["Exames II: OCT",3],["Exames III: OCTa",3],["ERG campo total e multifocal",3],["Ret. diabética: classif. e fatores de risco",2],["Ret. diabética: tratamentos clínicos",3],["Ret. diabética: tratamentos cirúrgicos",3],["Retinopatia Hipertensiva",2],["DMRI classificação e fisiopatologia",2],["DMRI tratamento",3],["Diagn Dif. de DMRI (RAP e kearns sayre)",3],["Teleangiectasias parafoveais (Mactel)",3],["OVCR I – diagnóstico e fatores prognósticos",2],["OVCR II – tratamentos",3],["ORVR I – diagnóstico e fatores prognósticos",2],["ORVR – tratamentos",3],["OACR – diagnóstico e tratamento",2],["Farmacologia: corticoide e antiangiogênicos",3],["Membrana epirretiniana",2],["Tração vitreomacular",2],["Trauma I – tipos e fatores prognósticos",2],["Trauma II – manejo e tratamento",3],["Maculopatias tóxicas",2],["Buraco Macular",3],["Endoftalmites",2],["Distrofias maculares",3],["Coroidopatia poliploidal",3],["DR: Classificação e avaliação",2],["DR: tratamento",3],["Síndrome de Irvine-Gass",2],["Retinose Pigmentar",2],["Coriorretinopatia Serosa Central",2],["Retinopatia da prematuridade",3],["Retinites virais (CMV e Herpes)",3],["Laserterapia. Tipos e indicações",3],["Como realizar clinical trials",3]];
         const CP2=["Fellow","Fellow","R3","R2"],CQ2=["Fellow","Fellow","R2","R1"];
         const HOL2=new Set(["2026-04-21"]);
+        // Reuniões que não aconteceram, em ordem cronológica. Fonte única da verdade:
+        // acrescentar uma data aqui remaneja a escala e gera a entrada no Changelog.
+        const CANCELLED=["2026-06-30","2026-07-28"];
         const CON2=["2026-09-08","2026-09-13"],REC2=["2026-12-19","2027-01-03"];
         const PC2=new Date(2026,8,15),FTE2='2027-03-02';
         const MI2={"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
@@ -9635,7 +9685,11 @@ void main() {
         function gC2(d){return isPC2(d)?CQ2:CP2}
         function av2(d,ex){return RES2.filter(r=>!onV2(r,d)&&(!ex||!ex.has(r)))}
         function avM2(d,ex){return av2(d,ex).filter(r=>mEl2(r,d))}
-        function acBuildSchedule(){
+        // shiftList: opcional. Passe um array para reconstruir a escala como ela era com
+        // apenas parte dos cancelamentos aplicados (usado pelo Changelog). Array.isArray e
+        // não `||` porque [] é truthy em JS: [] significa "escala original, sem cancelamentos".
+        function acBuildSchedule(shiftList){
+            const SHIFT_FROM=Array.isArray(shiftList)?shiftList:CANCELLED;
             const start=new Date(2026,2,17),end=new Date(2027,2,7);
             const meetings=[],allTue=[];
             for(let d=new Date(start);d<=end;d.setDate(d.getDate()+7)){allTue.push(new Date(d));if(isM2(d))meetings.push(new Date(d))}
@@ -9656,15 +9710,19 @@ void main() {
             const rbl=[...RES2].sort((a,b)=>(cC[b]+arC[b])-(cC[a]+arC[a])||(cC[b]-cC[a]));
             const aT={};rbl.forEach((r,i)=>{const na=cC[r]+arC[r];aT[r]=Math.max(0,(i<ex3?bt+1:bt)-na)});
             aSlots.forEach(s=>{const d=s.d,k=ds2(d);if(!ut[k])ut[k]=new Set();const e=raw[s.i];let ex=new Set(ut[k]);if(e.article)ex.add(e.article);let av=avM2(d,ex);if(!av.length)return;av.sort((a,b)=>{const ra=aT[a]-aC[a],rb=aT[b]-aC[b];if(ra!==rb)return rb-ra;const ta=aC[a]+cC[a]+arC[a],tb=aC[b]+cC[b]+arC[b];if(ta!==tb)return ta-tb;return(d-(la[b]||new Date(2020,0,1)))-(d-(la[a]||new Date(2020,0,1)))});const ch=av[0];e.aulaR2=ch;aC[ch]++;la[ch]=d;ut[k].add(ch)});
-            // --- DESLOCAMENTO DE UMA SEMANA A PARTIR DE 30/06/2026 ---
-            // A reunião de 30/06/2026 não aconteceu. Congelamos a atribuição original
+            // --- DESLOCAMENTO POR REUNIÕES CANCELADAS ---
+            // Para cada reunião que não aconteceu, congelamos a atribuição original
             // (tema+aula+caso+artigo+apresentador de cada reunião — já computada acima em `raw`)
-            // e apenas movemos cada atribuição, de 30/06 em diante, para a PRÓXIMA data de
-            // reunião válida. Ninguém é recalculado; só as datas escorregam. 30/06 fica vazia
-            // ("Reunião remanejada") e a última aula cai numa reunião extra em 09/03/2027.
-            const SHIFT_FROM='2026-06-30';
-            const splitIdx=raw.findIndex(e=>ds2(e.date)>=SHIFT_FROM);
-            if(splitIdx>=0){
+            // e apenas movemos cada atribuição, da data cancelada em diante, para a PRÓXIMA
+            // data de reunião válida. Ninguém é recalculado; só as datas escorregam. Cada data
+            // cancelada fica vazia ("Reunião remanejada") e o conteúdo excedente cai em
+            // reuniões extras no fim (09/03 e 16/03/2027).
+            // Aplicados em ordem cronológica, um de cada vez: depois de cada passagem todas as
+            // datas em `raw` continuam sendo terças de reunião válidas, então a passagem
+            // seguinte encontra exatamente a mesma invariante.
+            SHIFT_FROM.forEach(function(cancelled){
+                const splitIdx=raw.findIndex(e=>ds2(e.date)>=cancelled);
+                if(splitIdx<0)return;
                 const origDates=raw.map(e=>new Date(e.date));
                 // datas de reunião válidas para onde o conteúdo escorrega:
                 // entradas [splitIdx..fim] vão para as datas originais [splitIdx+1..fim] e +1 data extra no fim.
@@ -9673,18 +9731,23 @@ void main() {
                 let nd=new Date(origDates[origDates.length-1]);
                 while(true){nd.setDate(nd.getDate()+1);if(nd.getDay()===2&&!isFT2(nd)&&!HOL2.has(ds2(nd))&&!inR2(nd)&&!inC2(nd)){targetDates.push(new Date(nd));break;}}
                 for(let i=splitIdx;i<raw.length;i++){raw[i].date=new Date(targetDates[i-splitIdx]);}
-            }
+            });
             const shiftedTue=raw.map(e=>ds2(e.date));
             const lastTue=raw.length?raw[raw.length-1].date:null;
             const ms=new Set(shiftedTue),full=[];
             // percorre todas as terças do calendário, incluindo eventuais novas após o `end` original
             const allTue2=allTue.slice();
             if(lastTue){let d=new Date(allTue2[allTue2.length-1]);while(d<lastTue){d.setDate(d.getDate()+7);allTue2.push(new Date(d));}}
-            allTue2.forEach(d=>{const k=ds2(d);if(ms.has(k))full.push(raw.find(e=>ds2(e.date)===k));else{let r=[];if(k===SHIFT_FROM)r.push('Reunião remanejada');if(isFT2(d)&&ds2(d)!==FTE2)r.push('1ª semana');if(HOL2.has(k))r.push('Feriado');if(inR2(d))r.push('Recesso');if(inC2(d))r.push('Congresso');if(!r.length)return;full.push({date:new Date(d),skip:true,reason:r.join('; ')})}});
+            allTue2.forEach(d=>{const k=ds2(d);if(ms.has(k))full.push(raw.find(e=>ds2(e.date)===k));else{let r=[];if(SHIFT_FROM.indexOf(k)>=0)r.push('Reunião remanejada');if(isFT2(d)&&ds2(d)!==FTE2)r.push('1ª semana');if(HOL2.has(k))r.push('Feriado');if(inR2(d))r.push('Recesso');if(inC2(d))r.push('Congresso');if(!r.length)return;full.push({date:new Date(d),skip:true,reason:r.join('; ')})}});
             full.sort((a,b)=>a.date-b.date);
             return{entries:full,aC,cC,arC}
         }
         function acCBadge(t){if(t==='Fellow')return'<span class="ac-badge ac-badge-fellow">Fellow</span>';if(t==='R3')return'<span class="ac-badge ac-badge-r3">R3</span>';if(t==='R2')return'<span class="ac-badge ac-badge-r2">R2</span>';if(t==='R1')return'<span class="ac-badge ac-badge-r1">R1</span>';return t}
+        // Sinaliza quando o deslocamento por reunião cancelada joga um apresentador para
+        // dentro das próprias férias. É derivado de onV2/VAC2, então aparece e some sozinho
+        // conforme a escala muda — não há lista de exceções para manter.
+        function acVacWarn(r,d){if(!r||!onV2(r,d))return'';
+            return' <span class="ac-vac-warn" title="'+r+' está de férias ('+fD2(pd2(VAC2[r][0]))+' – '+fD2(pd2(VAC2[r][1]))+')" aria-label="'+r+' de férias nesta data">⚠️</span>'}
         window.acRenderSchedule=function(options){
             options=options||{};
             const{entries,aC,cC,arC}=acBuildSchedule();
@@ -9699,13 +9762,13 @@ void main() {
             if(m===3&&y===2026)html+='<th>Artigo</th>';html+='</tr></thead><tbody>';
             months[key].forEach(e=>{if(e.skip){const cols=(m===3&&y===2026)?7:6;html+='<tr class="ac-row-skip"><td class="date-col">'+fM2(e.date)+'</td><td colspan="'+(cols-1)+'">❌ Sem reunião — '+e.reason+'</td></tr>';return}
             let rc='';if(e.topicR&&r2A2(e.topicR,e.date))rc='ac-row-aula';
-            const ac=e.aulaR2?'<span class="ac-b-aula">'+e.aulaR2+'</span>':'';
-            const cc=acCBadge(e.caseType);const cr=e.caseR2?'<span class="ac-b-caso">'+e.caseR2+'</span>':'';
+            const ac=e.aulaR2?'<span class="ac-b-aula">'+e.aulaR2+'</span>'+acVacWarn(e.aulaR2,e.date):'';
+            const cc=acCBadge(e.caseType);const cr=e.caseR2?'<span class="ac-b-caso">'+e.caseR2+'</span>'+acVacWarn(e.caseR2,e.date):'';
             const rv=e.topicR?(e.topicR===2?'<span class="ac-badge ac-badge-r2">2</span>':'<span class="ac-badge ac-badge-r3">3</span>'):'';
             html+='<tr class="'+rc+'" data-acpessoas="'+[e.aulaR2,e.caseR2,e.article].filter(Boolean).join(',')+'">';
             html+='<td class="date-col">'+fM2(e.date)+'</td><td class="topic-col">'+e.topic+'</td><td class="r-col">'+rv+'</td>';
             html+='<td class="presenter-col">'+ac+'</td><td class="presenter-col">'+cc+'</td><td class="presenter-col">'+cr+'</td>';
-            if(m===3&&y===2026){const ar=e.article?'<span class="ac-b-art">'+e.article+'</span>':'';html+='<td class="presenter-col">'+ar+'</td>'}
+            if(m===3&&y===2026){const ar=e.article?'<span class="ac-b-art">'+e.article+'</span>'+acVacWarn(e.article,e.date):'';html+='<td class="presenter-col">'+ar+'</td>'}
             html+='</tr>'});html+='</tbody></table></div></div>'});
             c.innerHTML=html;
             const sb=document.getElementById('acSummaryBody');let sh='',ta=0,tc=0,tar=0;
@@ -9746,23 +9809,33 @@ void main() {
                 let html = '';
                 let ps = new Set(cell.dataset.pessoas ? cell.dataset.pessoas.split(',').map(x=>x.trim()).filter(Boolean) : []);
                 
+                // atributo seguro para HTML (o tema vira data-topic, lido pelo export .ics)
+                const at = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                // Monta um badge. `extra` são atributos já formatados (ex.: data-topic).
+                // ⚠️ + contorno quando o remanejamento cai dentro das férias do apresentador.
+                const badge = (kind, icon, r, extra) => {
+                    const ferias = onV2(r, e.date);
+                    const cls = 'cal-ac-badge cal-ac-' + kind + (ferias ? ' cal-ac-vac' : '');
+                    const title = ferias
+                        ? ` title="${at(r)} está de férias (${fD2(pd2(VAC2[r][0]))} – ${fD2(pd2(VAC2[r][1]))})"`
+                        : '';
+                    return `<span class="${cls}" data-pessoas="${pKey2(r)}"${extra || ''}${title}>${icon} ${at(r)}${ferias ? ' ⚠️' : ''}</span>`;
+                };
+
                 if (e.skip) {
                     html += `<span class="cal-ac-badge cal-ac-skip">❌ S/ Reunião</span>`;
                 } else {
                     if (e.aulaR2) {
-                        const name = pKey2(e.aulaR2);
-                        html += `<span class="cal-ac-badge cal-ac-aula" data-pessoas="${name}">📚 ${e.aulaR2}</span>`;
-                        ps.add(name);
+                        html += badge('aula', '📚', e.aulaR2, ` data-topic="${at(e.topic)}"`);
+                        ps.add(pKey2(e.aulaR2));
                     }
                     if (e.caseR2) {
-                        const name = pKey2(e.caseR2);
-                        html += `<span class="cal-ac-badge cal-ac-caso" data-pessoas="${name}">🏥 ${e.caseR2}</span>`;
-                        ps.add(name);
+                        html += badge('caso', '🏥', e.caseR2);
+                        ps.add(pKey2(e.caseR2));
                     }
                     if (e.article) {
-                        const name = pKey2(e.article);
-                        html += `<span class="cal-ac-badge cal-ac-art" data-pessoas="${name}">📄 ${e.article}</span>`;
-                        ps.add(name);
+                        html += badge('art', '📄', e.article);
+                        ps.add(pKey2(e.article));
                     }
                 }
                 
@@ -9774,6 +9847,61 @@ void main() {
             // Re-apply global filter so current selection applies to new badges
             if(typeof filterPessoa === 'function') filterPessoa();
         })();
+
+        // --- CHANGELOG: derivado, não escrito à mão ---
+        // acBuildSchedule é puro e recebe a lista de cancelamentos, então a escala anterior a
+        // cada cancelamento é simplesmente acBuildSchedule(CANCELLED.slice(0,i)). Comparamos
+        // duas reconstruções por índice de reunião — válido porque as atribuições são
+        // congeladas (só as datas escorregam), então o índice i é o mesmo conteúdo nos dois
+        // lados. Consequência: acrescentar uma data em CANCELLED gera sozinha a entrada
+        // correspondente aqui, e esta página nunca diverge da escala real.
+        window.renderChangelog = function renderChangelog() {
+            const box = document.getElementById('changelogContainer');
+            if (!box) return;
+            if (!CANCELLED.length) {
+                box.innerHTML = '<div class="ac-summary-card"><div class="cl-empty">Nenhum remanejamento registrado.</div></div>';
+                return;
+            }
+            const meetingsOf = list => acBuildSchedule(list).entries.filter(e => !e.skip);
+            let html = '';
+            // mais recente primeiro
+            CANCELLED.map((cancelledDate, i) => {
+                const before = meetingsOf(CANCELLED.slice(0, i));
+                const after  = meetingsOf(CANCELLED.slice(0, i + 1));
+                const moved  = before.map((b, j) => ({
+                    topic: b.topic, aula: b.aulaR2, caso: b.caseR2,
+                    from: ds2(b.date), to: ds2(after[j].date)
+                })).filter(x => x.from !== x.to);
+                return {
+                    cancelledDate, moved, i,
+                    lastBefore: ds2(before[before.length - 1].date),
+                    lastAfter:  ds2(after[after.length - 1].date)
+                };
+            }).reverse().forEach(entry => {
+                const pid = 'clPanel' + entry.i;
+                const who = m => [m.aula ? '📚 ' + m.aula : '', m.caso ? '🏥 ' + m.caso : ''].filter(Boolean).join(' ');
+                html += '<div class="ac-summary-card collapsible-panel ac-card-collapsible collapsed" id="' + pid + '">';
+                html += '<div class="ac-summary-header"><span>❌ Reunião de ' + fD2(pd2(entry.cancelledDate)) + ' não aconteceu</span>';
+                html += '<button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel(\'' + pid + '\')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button></div>';
+                html += '<div class="cl-meta"><span class="cl-stat"><strong>' + entry.moved.length + '</strong> reuniões deslocadas</span>';
+                html += '<span class="cl-stat">última aula <span class="cl-from">' + fD2(pd2(entry.lastBefore)) + '</span> → <span class="cl-to">' + fD2(pd2(entry.lastAfter)) + '</span></span>';
+                html += '<span class="cl-note">Conteúdo e apresentadores preservados — apenas as datas escorregam.</span></div>';
+                html += '<div class="collapsible-panel-content" style="overflow-x:auto"><table class="ac-summary-table cl-table"><thead><tr><th>De</th><th>Para</th><th>Tema</th><th>Apresenta</th></tr></thead><tbody>';
+                entry.moved.forEach(m => {
+                    html += '<tr><td class="cl-from">' + fD2(pd2(m.from)) + '</td><td class="cl-to">' + fD2(pd2(m.to)) + '</td><td class="cl-topic">' + m.topic + '</td><td>' + who(m) + '</td></tr>';
+                });
+                html += '</tbody></table></div></div>';
+            });
+            // O markup já sai com `collapsed` + ícone/rótulo corretos, e toggleCollapsiblePanel
+            // trabalha só a partir do DOM — nenhuma inicialização extra é necessária.
+            box.innerHTML = html;
+        };
+
+        // Expostos para inspeção no console do navegador — ex.: acBuildSchedule([]) mostra a
+        // escala como seria sem nenhum cancelamento. O teste de invariantes não usa isto:
+        // ele extrai o motor direto do arquivo e roda num contexto vm, sem navegador.
+        window.acBuildSchedule = acBuildSchedule;
+        window.CANCELLED = CANCELLED;
         // --- INJECT PS (PLANTÃO PRONTO-SOCORRO) BADGES INTO MAIN CALENDAR ---
         (function injectPSBadges() {
             const CYCLES_AH = [
