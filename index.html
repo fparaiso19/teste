@@ -8855,7 +8855,7 @@ void main() {
         <div class="ac-header">
             <div class="hero-eyebrow">Programa de Residência</div>
             <h1>Aulas e Casos</h1>
-            <p>R2 Retina · 17/03/2026 a 02/03/2027</p>
+            <p id="acPeriodo">R2 Retina · 17/03/2026 a 02/03/2027</p>
         </div>
         <div class="ac-congress">⚠️ <strong>Congresso:</strong> 08–13/09/2026 — sem atividades. A partir de 15/09, R2 assume aulas R=3, ciclo → Fellow→Fellow→R2→R1.<br>📋 <strong>Miniciclo (A,B,C,D,G):</strong> restringe elegibilidade até 08/05/2026 (férias Felipe).</div>
         <div class="ac-nav"><button class="nav-btn today-btn" id="acTodayBtn" onclick="acGoToToday()">Hoje</button><button class="nav-btn" onclick="acNavMonth(-1)">← Anterior</button><select class="ac-month-select" id="acMonthSelect" onchange="acGoToMonth(this.value)"></select><button class="nav-btn" onclick="acNavMonth(1)">Próximo →</button><button class="ac-print-btn" onclick="window.print()">🖨️ Exportar PDF</button></div>
@@ -9771,6 +9771,11 @@ void main() {
             if(m===3&&y===2026){const ar=e.article?'<span class="ac-b-art">'+e.article+'</span>'+acVacWarn(e.article,e.date):'';html+='<td class="presenter-col">'+ar+'</td>'}
             html+='</tr>'});html+='</tbody></table></div></div>'});
             c.innerHTML=html;
+            // O período do cabeçalho sai da própria escala: os cancelamentos empurram a
+            // última reunião para fora do fim nominal do R2, e uma data fixa aqui envelhece
+            // silenciosamente a cada remanejamento.
+            const pe=document.getElementById('acPeriodo'),mt=entries.filter(e=>!e.skip);
+            if(pe&&mt.length)pe.textContent='R2 Retina · '+fD2(mt[0].date)+' a '+fD2(mt[mt.length-1].date);
             const sb=document.getElementById('acSummaryBody');let sh='',ta=0,tc=0,tar=0;
             RES2.forEach(r=>{const a=aC[r],cc=cC[r],ar=arC[r];ta+=a;tc+=cc;tar+=ar;const v=VAC2[r]?fD2(pd2(VAC2[r][0]))+' – '+fD2(pd2(VAC2[r][1])):'';
             sh+='<tr><td class="name">'+r+'</td><td>'+a+'</td><td>'+cc+'</td><td>'+ar+'</td><td><strong>'+(a+cc+ar)+'</strong></td><td style="font-size:0.8em">'+v+'</td></tr>'});
