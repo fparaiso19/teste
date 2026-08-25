@@ -693,6 +693,8 @@
         .cal-ac-skip { background: var(--bg-tertiary); color: var(--text-muted); font-style: italic; font-weight: 500; border: 1px dotted var(--border-color); }
         /* apresentador remanejado para dentro das próprias férias */
         .cal-ac-vac { outline: 1px solid #F9A825; outline-offset: 1px; }
+        .cal-ac-adiada { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px dashed var(--border-color); }
+        .ac-sem-aula { color: var(--text-muted); font-style: italic; }
         .ac-vac-warn { font-size: 0.9em; cursor: help; }
         .page-tabs {
             background: rgba(5,10,15,0.76);
@@ -9661,6 +9663,10 @@ void main() {
         // Reuniões que não aconteceram, em ordem cronológica. Fonte única da verdade:
         // acrescentar uma data aqui remaneja a escala e gera a entrada no Changelog.
         const CANCELLED=["2026-06-30","2026-07-28"];
+        // Reuniões que ACONTECERAM mas em que a aula não foi dada. Diferente de CANCELLED:
+        // o caso clínico e o artigo rolaram normalmente, então o ciclo de casos segue na
+        // grade. Só o tema e o apresentador da aula escorregam para a próxima reunião.
+        const AULA_ADIADA=["2026-08-25"];
         const CON2=["2026-09-08","2026-09-13"],REC2=["2026-12-19","2027-01-03"];
         const PC2=new Date(2026,8,15),FTE2='2027-03-02';
         const MI2={"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
@@ -9688,8 +9694,9 @@ void main() {
         // shiftList: opcional. Passe um array para reconstruir a escala como ela era com
         // apenas parte dos cancelamentos aplicados (usado pelo Changelog). Array.isArray e
         // não `||` porque [] é truthy em JS: [] significa "escala original, sem cancelamentos".
-        function acBuildSchedule(shiftList){
+        function acBuildSchedule(shiftList,adiadaList){
             const SHIFT_FROM=Array.isArray(shiftList)?shiftList:CANCELLED;
+            const ADIADAS=Array.isArray(adiadaList)?adiadaList:AULA_ADIADA;
             const start=new Date(2026,2,17),end=new Date(2027,2,7);
             const meetings=[],allTue=[];
             for(let d=new Date(start);d<=end;d.setDate(d.getDate()+7)){allTue.push(new Date(d));if(isM2(d))meetings.push(new Date(d))}
@@ -9732,6 +9739,23 @@ void main() {
                 while(true){nd.setDate(nd.getDate()+1);if(nd.getDay()===2&&!isFT2(nd)&&!HOL2.has(ds2(nd))&&!inR2(nd)&&!inC2(nd)){targetDates.push(new Date(nd));break;}}
                 for(let i=splitIdx;i<raw.length;i++){raw[i].date=new Date(targetDates[i-splitIdx]);}
             });
+
+            // --- AULA ADIADA (a reunião houve, a aula não foi dada) ---
+            // Move apenas tema/topicR/aulaR2 um slot adiante e preserva caseType/caseR2 de cada
+            // data — é isso que mantém a trilha de casos na grade enquanto só as aulas atrasam.
+            // Uma reunião extra é acrescentada no fim para receber o tema que sobra.
+            ADIADAS.forEach(function(dSemAula){
+                const i0=raw.findIndex(e=>ds2(e.date)>=dSemAula);
+                if(i0<0)return;
+                let nd=new Date(raw[raw.length-1].date);
+                while(true){nd.setDate(nd.getDate()+1);if(nd.getDay()===2&&!isFT2(nd)&&!HOL2.has(ds2(nd))&&!inR2(nd)&&!inC2(nd))break}
+                raw.push({date:new Date(nd),topic:null,topicR:null,caseType:gC2(nd)[raw.length%4],
+                          aulaR2:null,caseR2:null,article:null,pc:isPC2(nd),semAula:false});
+                for(let i=raw.length-1;i>i0;i--){
+                    raw[i].topic=raw[i-1].topic; raw[i].topicR=raw[i-1].topicR; raw[i].aulaR2=raw[i-1].aulaR2;
+                }
+                raw[i0].topic=null; raw[i0].topicR=null; raw[i0].aulaR2=null; raw[i0].semAula=true;
+            });
             const shiftedTue=raw.map(e=>ds2(e.date));
             const lastTue=raw.length?raw[raw.length-1].date:null;
             const ms=new Set(shiftedTue),full=[];
@@ -9766,7 +9790,8 @@ void main() {
             const cc=acCBadge(e.caseType);const cr=e.caseR2?'<span class="ac-b-caso">'+e.caseR2+'</span>'+acVacWarn(e.caseR2,e.date):'';
             const rv=e.topicR?(e.topicR===2?'<span class="ac-badge ac-badge-r2">2</span>':'<span class="ac-badge ac-badge-r3">3</span>'):'';
             html+='<tr class="'+rc+'" data-acpessoas="'+[e.aulaR2,e.caseR2,e.article].filter(Boolean).join(',')+'">';
-            html+='<td class="date-col">'+fM2(e.date)+'</td><td class="topic-col">'+e.topic+'</td><td class="r-col">'+rv+'</td>';
+            const tc=e.topic?e.topic:'<span class="ac-sem-aula">Aula adiada — tema segue para a próxima reunião</span>';
+            html+='<td class="date-col">'+fM2(e.date)+'</td><td class="topic-col">'+tc+'</td><td class="r-col">'+rv+'</td>';
             html+='<td class="presenter-col">'+ac+'</td><td class="presenter-col">'+cc+'</td><td class="presenter-col">'+cr+'</td>';
             if(m===3&&y===2026){const ar=e.article?'<span class="ac-b-art">'+e.article+'</span>'+acVacWarn(e.article,e.date):'';html+='<td class="presenter-col">'+ar+'</td>'}
             html+='</tr>'});html+='</tbody></table></div></div>'});
@@ -9830,6 +9855,7 @@ void main() {
                 if (e.skip) {
                     html += `<span class="cal-ac-badge cal-ac-skip">❌ S/ Reunião</span>`;
                 } else {
+                    if (e.semAula) html += `<span class="cal-ac-badge cal-ac-adiada" title="A reunião aconteceu, mas a aula não foi dada">↷ Aula adiada</span>`;
                     if (e.aulaR2) {
                         html += badge('aula', '📚', e.aulaR2, ` data-topic="${at(e.topic)}"`);
                         ps.add(pKey2(e.aulaR2));
@@ -9863,44 +9889,60 @@ void main() {
         window.renderChangelog = function renderChangelog() {
             const box = document.getElementById('changelogContainer');
             if (!box) return;
-            if (!CANCELLED.length) {
+            // Dois tipos de evento em ordem cronológica: reunião cancelada (para tudo) e
+            // aula adiada (a reunião houve, só a aula escorregou). Cada entrada é o diff
+            // entre reconstruir a escala com os eventos até i e com os eventos até i+1.
+            const EVENTOS = CANCELLED.map(d => ({d, tipo: 'cancelada'}))
+                .concat(ADIADA_LISTA().map(d => ({d, tipo: 'adiada'})))
+                .sort((x, y) => x.d < y.d ? -1 : 1);
+            if (!EVENTOS.length) {
                 box.innerHTML = '<div class="ac-summary-card"><div class="cl-empty">Nenhum remanejamento registrado.</div></div>';
                 return;
             }
-            const meetingsOf = list => acBuildSchedule(list).entries.filter(e => !e.skip);
+            const prefixo = n => [
+                EVENTOS.slice(0, n).filter(e => e.tipo === 'cancelada').map(e => e.d),
+                EVENTOS.slice(0, n).filter(e => e.tipo === 'adiada').map(e => e.d)
+            ];
+            // mapa tema -> data, para diferenciar sem depender de índice
+            const mapaTemas = (c, a) => {
+                const mp = {};
+                acBuildSchedule(c, a).entries.filter(e => !e.skip && e.topic).forEach(e => { mp[e.topic] = e; });
+                return mp;
+            };
             let html = '';
-            // mais recente primeiro
-            CANCELLED.map((cancelledDate, i) => {
-                const before = meetingsOf(CANCELLED.slice(0, i));
-                const after  = meetingsOf(CANCELLED.slice(0, i + 1));
-                const moved  = before.map((b, j) => ({
-                    topic: b.topic, aula: b.aulaR2, caso: b.caseR2,
-                    from: ds2(b.date), to: ds2(after[j].date)
-                })).filter(x => x.from !== x.to);
-                return {
-                    cancelledDate, moved, i,
-                    lastBefore: ds2(before[before.length - 1].date),
-                    lastAfter:  ds2(after[after.length - 1].date)
-                };
+            EVENTOS.map((ev, i) => {
+                const A = mapaTemas(...prefixo(i)), B = mapaTemas(...prefixo(i + 1));
+                const moved = Object.keys(A).filter(t => B[t] && ds2(A[t].date) !== ds2(B[t].date))
+                    .map(t => ({topic: t, from: ds2(A[t].date), to: ds2(B[t].date),
+                                aula: B[t].aulaR2, caso: B[t].caseR2}))
+                    .sort((x, y) => x.from < y.from ? -1 : 1);
+                const ultA = Object.values(A).map(e => ds2(e.date)).sort().pop();
+                const ultB = Object.values(B).map(e => ds2(e.date)).sort().pop();
+                return {...ev, moved, i, ultA, ultB};
             }).reverse().forEach(entry => {
                 const pid = 'clPanel' + entry.i;
                 const who = m => [m.aula ? '📚 ' + m.aula : '', m.caso ? '🏥 ' + m.caso : ''].filter(Boolean).join(' ');
+                const cab = entry.tipo === 'cancelada'
+                    ? '❌ Reunião de ' + fD2(pd2(entry.d)) + ' não aconteceu'
+                    : '↷ Aula de ' + fD2(pd2(entry.d)) + ' não foi dada';
+                const sub = entry.tipo === 'cancelada'
+                    ? 'Nem aula, nem caso, nem artigo — a escala inteira escorrega.'
+                    : 'A reunião aconteceu: caso e artigo normais. Só a trilha de aulas escorrega.';
                 html += '<div class="ac-summary-card collapsible-panel ac-card-collapsible collapsed" id="' + pid + '">';
-                html += '<div class="ac-summary-header"><span>❌ Reunião de ' + fD2(pd2(entry.cancelledDate)) + ' não aconteceu</span>';
+                html += '<div class="ac-summary-header"><span>' + cab + '</span>';
                 html += '<button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel(\'' + pid + '\')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button></div>';
-                html += '<div class="cl-meta"><span class="cl-stat"><strong>' + entry.moved.length + '</strong> reuniões deslocadas</span>';
-                html += '<span class="cl-stat">última aula <span class="cl-from">' + fD2(pd2(entry.lastBefore)) + '</span> → <span class="cl-to">' + fD2(pd2(entry.lastAfter)) + '</span></span>';
-                html += '<span class="cl-note">Conteúdo e apresentadores preservados — apenas as datas escorregam.</span></div>';
+                html += '<div class="cl-meta"><span class="cl-stat"><strong>' + entry.moved.length + '</strong> aulas deslocadas</span>';
+                html += '<span class="cl-stat">última aula <span class="cl-from">' + fD2(pd2(entry.ultA)) + '</span> → <span class="cl-to">' + fD2(pd2(entry.ultB)) + '</span></span>';
+                html += '<span class="cl-note">' + sub + '</span></div>';
                 html += '<div class="collapsible-panel-content" style="overflow-x:auto"><table class="ac-summary-table cl-table"><thead><tr><th>De</th><th>Para</th><th>Tema</th><th>Apresenta</th></tr></thead><tbody>';
                 entry.moved.forEach(m => {
                     html += '<tr><td class="cl-from">' + fD2(pd2(m.from)) + '</td><td class="cl-to">' + fD2(pd2(m.to)) + '</td><td class="cl-topic">' + m.topic + '</td><td>' + who(m) + '</td></tr>';
                 });
                 html += '</tbody></table></div></div>';
             });
-            // O markup já sai com `collapsed` + ícone/rótulo corretos, e toggleCollapsiblePanel
-            // trabalha só a partir do DOM — nenhuma inicialização extra é necessária.
             box.innerHTML = html;
         };
+        function ADIADA_LISTA(){ return AULA_ADIADA; }
 
         // Expostos para inspeção no console do navegador — ex.: acBuildSchedule([]) mostra a
         // escala como seria sem nenhum cancelamento. O teste de invariantes não usa isto:
