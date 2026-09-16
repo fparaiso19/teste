@@ -9667,6 +9667,9 @@ void main() {
         // o caso clínico e o artigo rolaram normalmente, então o ciclo de casos segue na
         // grade. Só o tema e o apresentador da aula escorregam para a próxima reunião.
         const AULA_ADIADA=["2026-08-25"];
+        // Espelho de AULA_ADIADA: a reunião aconteceu e a aula foi dada, mas o caso clínico
+        // não foi apresentado. Só o ciclo de casos para um passo; a trilha de aulas segue.
+        const CASO_ADIADO=["2026-09-15"];
         const CON2=["2026-09-08","2026-09-13"],REC2=["2026-12-19","2027-01-03"];
         const PC2=new Date(2026,8,15),FTE2='2027-03-02';
         const MI2={"João":0,"Fernanda":1,"Marina":2,"Leonardo":3,"Victoria":4,"Thauanna":5,"Arthur":6,"Felipe":7};
@@ -9694,9 +9697,10 @@ void main() {
         // shiftList: opcional. Passe um array para reconstruir a escala como ela era com
         // apenas parte dos cancelamentos aplicados (usado pelo Changelog). Array.isArray e
         // não `||` porque [] é truthy em JS: [] significa "escala original, sem cancelamentos".
-        function acBuildSchedule(shiftList,adiadaList){
+        function acBuildSchedule(shiftList,adiadaList,casoList){
             const SHIFT_FROM=Array.isArray(shiftList)?shiftList:CANCELLED;
             const ADIADAS=Array.isArray(adiadaList)?adiadaList:AULA_ADIADA;
+            const CASOS_AD=Array.isArray(casoList)?casoList:CASO_ADIADO;
             const start=new Date(2026,2,17),end=new Date(2027,2,7);
             const meetings=[],allTue=[];
             for(let d=new Date(start);d<=end;d.setDate(d.getDate()+7)){allTue.push(new Date(d));if(isM2(d))meetings.push(new Date(d))}
@@ -9756,6 +9760,19 @@ void main() {
                 }
                 raw[i0].topic=null; raw[i0].topicR=null; raw[i0].aulaR2=null; raw[i0].semAula=true;
             });
+
+            // --- CASO ADIADO (a reunião houve e a aula foi dada; o caso não) ---
+            // Move apenas caseType/caseR2 um slot adiante. Não cria reunião nova — a reunião
+            // aconteceu —, então o último item do ciclo sai do calendário. O teste de
+            // invariantes falha se esse item tiver nome, para ninguém perder caso em silêncio.
+            CASOS_AD.forEach(function(dSemCaso){
+                const i0=raw.findIndex(e=>ds2(e.date)>=dSemCaso);
+                if(i0<0)return;
+                for(let i=raw.length-1;i>i0;i--){
+                    raw[i].caseType=raw[i-1].caseType; raw[i].caseR2=raw[i-1].caseR2;
+                }
+                raw[i0].caseType=null; raw[i0].caseR2=null; raw[i0].casoAdiado=true;
+            });
             const shiftedTue=raw.map(e=>ds2(e.date));
             const lastTue=raw.length?raw[raw.length-1].date:null;
             const ms=new Set(shiftedTue),full=[];
@@ -9787,7 +9804,7 @@ void main() {
             months[key].forEach(e=>{if(e.skip){const cols=(m===3&&y===2026)?7:6;html+='<tr class="ac-row-skip"><td class="date-col">'+fM2(e.date)+'</td><td colspan="'+(cols-1)+'">❌ Sem reunião — '+e.reason+'</td></tr>';return}
             let rc='';if(e.topicR&&r2A2(e.topicR,e.date))rc='ac-row-aula';
             const ac=e.aulaR2?'<span class="ac-b-aula">'+e.aulaR2+'</span>'+acVacWarn(e.aulaR2,e.date):'';
-            const cc=acCBadge(e.caseType);const cr=e.caseR2?'<span class="ac-b-caso">'+e.caseR2+'</span>'+acVacWarn(e.caseR2,e.date):'';
+            const cc=e.casoAdiado?'<span class="ac-sem-aula">adiado</span>':acCBadge(e.caseType);const cr=e.caseR2?'<span class="ac-b-caso">'+e.caseR2+'</span>'+acVacWarn(e.caseR2,e.date):'';
             const rv=e.topicR?(e.topicR===2?'<span class="ac-badge ac-badge-r2">2</span>':'<span class="ac-badge ac-badge-r3">3</span>'):'';
             html+='<tr class="'+rc+'" data-acpessoas="'+[e.aulaR2,e.caseR2,e.article].filter(Boolean).join(',')+'">';
             const tc=e.topic?e.topic:'<span class="ac-sem-aula">Aula adiada — tema segue para a próxima reunião</span>';
@@ -9856,6 +9873,7 @@ void main() {
                     html += `<span class="cal-ac-badge cal-ac-skip">❌ S/ Reunião</span>`;
                 } else {
                     if (e.semAula) html += `<span class="cal-ac-badge cal-ac-adiada" title="A reunião aconteceu, mas a aula não foi dada">↷ Aula adiada</span>`;
+                    if (e.casoAdiado) html += `<span class="cal-ac-badge cal-ac-adiada" title="A reunião aconteceu, mas o caso clínico não foi apresentado">↷ Caso adiado</span>`;
                     if (e.aulaR2) {
                         html += badge('aula', '📚', e.aulaR2, ` data-topic="${at(e.topic)}"`);
                         ps.add(pKey2(e.aulaR2));
@@ -9889,24 +9907,30 @@ void main() {
         window.renderChangelog = function renderChangelog() {
             const box = document.getElementById('changelogContainer');
             if (!box) return;
-            // Dois tipos de evento em ordem cronológica: reunião cancelada (para tudo) e
-            // aula adiada (a reunião houve, só a aula escorregou). Cada entrada é o diff
-            // entre reconstruir a escala com os eventos até i e com os eventos até i+1.
+            // Três tipos de evento em ordem cronológica: reunião cancelada (para tudo), aula
+            // adiada e caso adiado (a reunião houve, só uma das trilhas escorregou). Cada
+            // entrada é o diff entre reconstruir a escala com os eventos até i e até i+1.
             const EVENTOS = CANCELLED.map(d => ({d, tipo: 'cancelada'}))
                 .concat(ADIADA_LISTA().map(d => ({d, tipo: 'adiada'})))
+                .concat(CASO_ADIADO.map(d => ({d, tipo: 'caso'})))
                 .sort((x, y) => x.d < y.d ? -1 : 1);
             if (!EVENTOS.length) {
                 box.innerHTML = '<div class="ac-summary-card"><div class="cl-empty">Nenhum remanejamento registrado.</div></div>';
                 return;
             }
-            const prefixo = n => [
-                EVENTOS.slice(0, n).filter(e => e.tipo === 'cancelada').map(e => e.d),
-                EVENTOS.slice(0, n).filter(e => e.tipo === 'adiada').map(e => e.d)
-            ];
-            // mapa tema -> data, para diferenciar sem depender de índice
-            const mapaTemas = (c, a) => {
+            const prefixo = n => ['cancelada', 'adiada', 'caso']
+                .map(t => EVENTOS.slice(0, n).filter(e => e.tipo === t).map(e => e.d));
+            // casos de R2 por pessoa, na ordem em que acontecem — pareia antes/depois por pessoa
+            const casosR2 = lists => {
                 const mp = {};
-                acBuildSchedule(c, a).entries.filter(e => !e.skip && e.topic).forEach(e => { mp[e.topic] = e; });
+                acBuildSchedule(...lists).entries.filter(e => !e.skip && e.caseR2)
+                    .forEach(e => { (mp[e.caseR2] = mp[e.caseR2] || []).push(ds2(e.date)); });
+                return mp;
+            };
+            // mapa tema -> data, para diferenciar sem depender de índice
+            const mapaTemas = (c, a, k) => {
+                const mp = {};
+                acBuildSchedule(c, a, k).entries.filter(e => !e.skip && e.topic).forEach(e => { mp[e.topic] = e; });
                 return mp;
             };
             let html = '';
@@ -9918,24 +9942,43 @@ void main() {
                     .sort((x, y) => x.from < y.from ? -1 : 1);
                 const ultA = Object.values(A).map(e => ds2(e.date)).sort().pop();
                 const ultB = Object.values(B).map(e => ds2(e.date)).sort().pop();
-                return {...ev, moved, i, ultA, ultB};
+                const cA = casosR2(prefixo(i)), cB = casosR2(prefixo(i + 1));
+                const movedCasos = [];
+                Object.keys(cA).forEach(r => cA[r].forEach((d, j) => {
+                    if (cB[r] && cB[r][j] && cB[r][j] !== d) movedCasos.push({caso: r, from: d, to: cB[r][j]});
+                }));
+                movedCasos.sort((x, y) => x.from < y.from ? -1 : 1);
+                return {...ev, moved, movedCasos, i, ultA, ultB};
             }).reverse().forEach(entry => {
                 const pid = 'clPanel' + entry.i;
                 const who = m => [m.aula ? '📚 ' + m.aula : '', m.caso ? '🏥 ' + m.caso : ''].filter(Boolean).join(' ');
-                const cab = entry.tipo === 'cancelada'
-                    ? '❌ Reunião de ' + fD2(pd2(entry.d)) + ' não aconteceu'
-                    : '↷ Aula de ' + fD2(pd2(entry.d)) + ' não foi dada';
-                const sub = entry.tipo === 'cancelada'
-                    ? 'Nem aula, nem caso, nem artigo — a escala inteira escorrega.'
-                    : 'A reunião aconteceu: caso e artigo normais. Só a trilha de aulas escorrega.';
+                const eCaso = entry.tipo === 'caso';
+                const cab = {
+                    cancelada: '❌ Reunião de ' + fD2(pd2(entry.d)) + ' não aconteceu',
+                    adiada: '↷ Aula de ' + fD2(pd2(entry.d)) + ' não foi dada',
+                    caso: '↷ Caso de ' + fD2(pd2(entry.d)) + ' não foi apresentado'
+                }[entry.tipo];
+                const sub = {
+                    cancelada: 'Nem aula, nem caso, nem artigo — a escala inteira escorrega.',
+                    adiada: 'A reunião aconteceu: caso e artigo normais. Só a trilha de aulas escorrega.',
+                    caso: 'A reunião aconteceu e a aula foi dada. Só o ciclo de casos (Fellow/R1/R2) escorrega uma reunião.'
+                }[entry.tipo];
                 html += '<div class="ac-summary-card collapsible-panel ac-card-collapsible collapsed" id="' + pid + '">';
                 html += '<div class="ac-summary-header"><span>' + cab + '</span>';
                 html += '<button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel(\'' + pid + '\')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button></div>';
-                html += '<div class="cl-meta"><span class="cl-stat"><strong>' + entry.moved.length + '</strong> aulas deslocadas</span>';
-                html += '<span class="cl-stat">última aula <span class="cl-from">' + fD2(pd2(entry.ultA)) + '</span> → <span class="cl-to">' + fD2(pd2(entry.ultB)) + '</span></span>';
+                if (eCaso) {
+                    html += '<div class="cl-meta"><span class="cl-stat"><strong>' + entry.movedCasos.length + '</strong> casos de R2 remarcados</span>';
+                    html += '<span class="cl-stat">aulas não mudam</span>';
+                } else {
+                    html += '<div class="cl-meta"><span class="cl-stat"><strong>' + entry.moved.length + '</strong> aulas deslocadas</span>';
+                    html += '<span class="cl-stat">última aula <span class="cl-from">' + fD2(pd2(entry.ultA)) + '</span> → <span class="cl-to">' + fD2(pd2(entry.ultB)) + '</span></span>';
+                }
                 html += '<span class="cl-note">' + sub + '</span></div>';
-                html += '<div class="collapsible-panel-content" style="overflow-x:auto"><table class="ac-summary-table cl-table"><thead><tr><th>De</th><th>Para</th><th>Tema</th><th>Apresenta</th></tr></thead><tbody>';
-                entry.moved.forEach(m => {
+                html += '<div class="collapsible-panel-content" style="overflow-x:auto"><table class="ac-summary-table cl-table"><thead><tr><th>De</th><th>Para</th><th>' + (eCaso ? 'Caso de R2' : 'Tema') + '</th>' + (eCaso ? '' : '<th>Apresenta</th>') + '</tr></thead><tbody>';
+                if (eCaso) entry.movedCasos.forEach(m => {
+                    html += '<tr><td class="cl-from">' + fD2(pd2(m.from)) + '</td><td class="cl-to">' + fD2(pd2(m.to)) + '</td><td class="cl-topic">🏥 ' + m.caso + '</td></tr>';
+                });
+                else entry.moved.forEach(m => {
                     html += '<tr><td class="cl-from">' + fD2(pd2(m.from)) + '</td><td class="cl-to">' + fD2(pd2(m.to)) + '</td><td class="cl-topic">' + m.topic + '</td><td>' + who(m) + '</td></tr>';
                 });
                 html += '</tbody></table></div></div>';
