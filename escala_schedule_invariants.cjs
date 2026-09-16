@@ -82,7 +82,7 @@ function loadEngine(htmlPath) {
   const b = lines.findIndex(l => l.includes('function acCBadge'));
   if (a < 0 || b < 0 || b <= a) throw new Error(`motor não encontrado em ${htmlPath}`);
   const src = lines.slice(a, b).join('\n') +
-    '\n;__out = {acBuildSchedule, RES2, VAC2, TOP2, ds2, onV2, CANCELLED, AULA_ADIADA, CASO_ADIADO, CP2, CQ2};';
+    '\n;__out = {acBuildSchedule, RES2, VAC2, TOP2, ds2, onV2, CANCELLED, AULA_ADIADA, CASO_ADIADO, CP2, CQ2, nivelAula, NIVEL_EXCECOES};';
   const ctx = { __out: null };
   vm.runInNewContext(src, ctx, { filename: 'escala-engine', timeout: 5000 });
   return ctx.__out;
@@ -130,6 +130,18 @@ function main() {
         'nenhuma aula marcada numa data cancelada ou adiada');
   check(dates[dates.length - 1] === EXPECTED_LAST_AULA,
         `última aula em ${EXPECTED_LAST_AULA} (obtido ${dates[dates.length - 1]})`);
+
+  // ---------- nível de quem apresenta ----------
+  console.log('  \x1b[2m-- nível de quem apresenta --\x1b[0m');
+  const temas = E.TOP2.map(t => t[0]);
+  const orfas = Object.keys(E.NIVEL_EXCECOES).filter(t => temas.indexOf(t) < 0);
+  check(orfas.length === 0, 'toda exceção de nível aponta para um tema existente', orfas.join('\n'));
+  const inuteis = aulas.filter(e => E.NIVEL_EXCECOES[e.topic]).map(e => E.nivelAula(e))
+    .filter(n => n.r === n.regra);
+  check(inuteis.length === 0, 'toda exceção de nível difere da regra (senão é peso morto)');
+  const incoer = aulas.map(e => ({e, n: E.nivelAula(e)})).filter(({e, n}) => (n.r === 2) !== !!e.aulaR2)
+    .map(({e, n}) => `${ds(e.date)} ${e.topic.slice(0, 30)}: nível R${n.r}, R2 escalado=${e.aulaR2 || 'ninguém'}`);
+  check(incoer.length === 0, 'aula de nível R2 tem R2 escalado, e só ela', incoer.join('\n'));
 
   // ---------- trilha de casos ----------
   console.log('  \x1b[2m-- trilha de casos --\x1b[0m');
