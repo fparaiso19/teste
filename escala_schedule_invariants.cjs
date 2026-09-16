@@ -15,10 +15,13 @@
  *                      quando uma aula é dada. É o BASELINE abaixo: tema -> quem
  *                      apresenta. Nenhum evento de calendário pode mexer nisso.
  *   trilha de CASOS  — ciclo Fellow/Fellow/R3/R2 (pré-CBO) ou Fellow/Fellow/R2/R1
- *                      (pós-CBO), um passo por reunião REALIZADA. Não tem baseline:
- *                      é verificada recalculando o ciclo sobre a grade de reuniões.
+ *                      (pós-CBO), um passo por caso APRESENTADO. Não tem baseline:
+ *                      é verificada recalculando o ciclo sobre as reuniões com caso.
  *
- * O teste que mais importa é o último: adiar uma aula não pode mover o ciclo de casos.
+ * AULA_ADIADA pausa só a primeira trilha; CASO_ADIADO, só a segunda; CANCELLED, as duas.
+ *
+ * Os testes que mais importam: adiar uma trilha nunca pode mover a outra, e adiar um
+ * caso nunca pode fazer um R2 perder a apresentação dele.
  */
 const fs = require('fs');
 const path = require('path');
@@ -68,9 +71,9 @@ const EXPECTED_LAST_AULA = '2027-03-23';
 
 // Colisões conhecidas e aceitas: o deslocamento pôs o apresentador dentro das próprias
 // férias e optou-se por não reatribuir. Lista exaustiva — colisão nova faz o teste falhar.
-// 25/08 caso=Victoria: atribuição do app, pendente de reconciliação do ciclo de casos
-// (a observação de 15/09 decide se o ciclo está uma reunião atrasado). Na prática quem
-// apresentou em 25/08 foi um R3.
+// 25/08 caso=Victoria: o slot era dela e caiu nas férias. Na prática houve troca pontual
+// e quem apresentou foi um R3 — confirmado em 15/09, quando a vez era de um Fellow,
+// exatamente como o ciclo do app prevê.
 const ACCEPTED_VACATION_COLLISIONS = ['2026-08-25 caso=Victoria', '2026-11-10 aula=Marina'];
 
 function loadEngine(htmlPath) {
@@ -79,7 +82,7 @@ function loadEngine(htmlPath) {
   const b = lines.findIndex(l => l.includes('function acCBadge'));
   if (a < 0 || b < 0 || b <= a) throw new Error(`motor não encontrado em ${htmlPath}`);
   const src = lines.slice(a, b).join('\n') +
-    '\n;__out = {acBuildSchedule, RES2, VAC2, TOP2, ds2, onV2, CANCELLED, AULA_ADIADA, CP2, CQ2};';
+    '\n;__out = {acBuildSchedule, RES2, VAC2, TOP2, ds2, onV2, CANCELLED, AULA_ADIADA, CASO_ADIADO, CP2, CQ2};';
   const ctx = { __out: null };
   vm.runInNewContext(src, ctx, { filename: 'escala-engine', timeout: 5000 });
   return ctx.__out;
@@ -101,7 +104,8 @@ function main() {
 
   console.log(`\nEscala — invariantes (${path.basename(htmlPath)})`);
   console.log(`CANCELLED   = ${JSON.stringify(E.CANCELLED)}`);
-  console.log(`AULA_ADIADA = ${JSON.stringify(E.AULA_ADIADA)}\n`);
+  console.log(`AULA_ADIADA = ${JSON.stringify(E.AULA_ADIADA)}`);
+  console.log(`CASO_ADIADO = ${JSON.stringify(E.CASO_ADIADO)}\n`);
 
   // ---------- trilha de aulas ----------
   console.log('  \x1b[2m-- trilha de aulas --\x1b[0m');
@@ -136,10 +140,26 @@ function main() {
     check(!!e && !e.topic && !!e.caseType,
           `${d}: reunião existe, sem aula, com caso (tipo ${e ? e.caseType : '—'})`);
   });
-  const ciclo = meetings.map((e, i) => (ds(e.date) >= '2026-09-15' ? E.CQ2 : E.CP2)[i % 4]);
-  const cicloOk = meetings.every((e, i) => e.caseType === ciclo[i]);
-  check(cicloOk, 'ciclo de casos avança exatamente um passo por reunião realizada',
-        cicloOk ? '' : meetings.map((e, i) => e.caseType !== ciclo[i] ? `${ds(e.date)}: ${e.caseType} != ${ciclo[i]}` : null).filter(Boolean).join('\n'));
+  E.CASO_ADIADO.forEach(d => {
+    const e = meetings.find(x => ds(x.date) === d);
+    check(!!e && !!e.topic && !e.caseType && !e.caseR2,
+          `${d}: reunião existe, com aula (${e && e.topic ? e.topic.slice(0, 24) : '—'}), sem caso`);
+  });
+  const comCaso = meetings.filter(e => !e.casoAdiado);
+  const ciclo = comCaso.map((e, i) => (ds(e.date) >= '2026-09-15' ? E.CQ2 : E.CP2)[i % 4]);
+  const cicloOk = comCaso.every((e, i) => e.caseType === ciclo[i]);
+  check(cicloOk, 'ciclo de casos avança exatamente um passo por caso apresentado',
+        cicloOk ? '' : comCaso.map((e, i) => e.caseType !== ciclo[i] ? `${ds(e.date)}: ${e.caseType} != ${ciclo[i]}` : null).filter(Boolean).join('\n'));
+
+  // adiar um caso: aulas intactas e nenhum R2 perde caso
+  const semCasoAd = E.acBuildSchedule(E.CANCELLED, E.AULA_ADIADA, []).entries.filter(e => !e.skip);
+  const aulaSig = m => JSON.stringify(m.filter(e => e.topic).map(e => [ds(e.date), e.topic, e.aulaR2]));
+  check(aulaSig(semCasoAd) === aulaSig(meetings), 'adiar um caso NÃO mexe na trilha de aulas');
+  const porPessoa = m => { const o = {}; m.forEach(e => { if (e.caseR2) o[e.caseR2] = (o[e.caseR2] || 0) + 1; });
+    return JSON.stringify(Object.keys(o).sort().map(k => [k, o[k]])); };
+  check(porPessoa(semCasoAd) === porPessoa(meetings),
+        'adiar um caso não faz nenhum R2 perder apresentação',
+        `sem adiamento ${porPessoa(semCasoAd)}\ncom adiamento ${porPessoa(meetings)}`);
 
   // ESTE é o invariante central das duas trilhas
   const semAdiada = E.acBuildSchedule(E.CANCELLED, []).entries.filter(e => !e.skip);
