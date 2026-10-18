@@ -9677,10 +9677,13 @@ void main() {
         // Quem apresenta cada aula (R1/R2/R3) segue uma regra: antes do CBO, o próprio nível
         // do tema; a partir de 15/09, um degrau abaixo. Aqui ficam as exceções combinadas,
         // guardadas pelo TEMA e não pela data — as datas mudam a cada remanejamento, o tema não.
+        // `quem` (opcional) troca o R2 escalado por decisão do grupo; r:1 tira o R2 da aula.
         const NIVEL_EXCECOES={
             "ORVR – tratamentos":{r:1,motivo:"aula que faltou em 25/08, dada pelo R1 em 15/09; pela regra seria do R2"},
             "OACR – diagnóstico e tratamento":{r:2,motivo:"Thauanna (R2) já tinha preparado; pela regra seria do R1"},
-            "Farmacologia: corticoide e antiangiogênicos":{r:1,motivo:"decisão do grupo; pela regra seria do R2"}
+            "Farmacologia: corticoide e antiangiogênicos":{r:1,motivo:"decisão do grupo; pela regra seria do R2"},
+            "Trauma II – manejo e tratamento":{r:1,motivo:"decisão do grupo: cai nas férias da Marina, um R1 apresenta; pela regra seria do R2"},
+            "DR: Classificação e avaliação":{r:2,quem:"Marina",motivo:"decisão do grupo: Marina assume no lugar de Trauma II; pela regra seria do R1"}
         };
         function nivelAula(e){
             if(!e||!e.topic)return null;
@@ -9789,6 +9792,17 @@ void main() {
                     raw[i].caseType=raw[i-1].caseType; raw[i].caseR2=raw[i-1].caseR2;
                 }
                 raw[i0].caseType=null; raw[i0].caseR2=null; raw[i0].casoAdiado=true;
+            });
+            // --- TROCAS COMBINADAS (NIVEL_EXCECOES) ---
+            // Aplicadas depois de toda a distribuição, para que ninguém além dos envolvidos
+            // mude de tema. Exceção de R1 tira o R2 da aula; `quem` põe o R2 combinado.
+            raw.forEach(function(e){
+                const x=e.topic&&NIVEL_EXCECOES[e.topic];if(!x)return;
+                const novo=x.r===2?(x.quem||e.aulaR2):null;
+                if(novo===e.aulaR2)return;
+                if(e.aulaR2)aC[e.aulaR2]--;
+                if(novo)aC[novo]++;
+                e.aulaR2=novo;
             });
             const shiftedTue=raw.map(e=>ds2(e.date));
             const lastTue=raw.length?raw[raw.length-1].date:null;

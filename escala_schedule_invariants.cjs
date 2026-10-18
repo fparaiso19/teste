@@ -28,7 +28,8 @@ const path = require('path');
 const vm = require('vm');
 
 // [tema, aula(R2), anoDoTema] na ordem original de TOP2. Deve permanecer idêntico:
-// eventos de calendário movem datas, nunca quem apresenta.
+// eventos de calendário movem datas, nunca quem apresenta. Só muda por decisão do grupo
+// registrada em NIVEL_EXCECOES (ex.: out/2026, Marina trocou Trauma II por DR: Classificação).
 const BASELINE = [
   ["Exames I: Angiofluoresceinografia",null,3],
   ["Exames II: OCT",null,3],
@@ -51,13 +52,13 @@ const BASELINE = [
   ["Membrana epirretiniana",null,2],
   ["Tração vitreomacular",null,2],
   ["Trauma I – tipos e fatores prognósticos",null,2],
-  ["Trauma II – manejo e tratamento","Marina",3],
+  ["Trauma II – manejo e tratamento",null,3],
   ["Maculopatias tóxicas",null,2],
   ["Buraco Macular","Leonardo",3],
   ["Endoftalmites",null,2],
   ["Distrofias maculares","Victoria",3],
   ["Coroidopatia poliploidal","Felipe",3],
-  ["DR: Classificação e avaliação",null,2],
+  ["DR: Classificação e avaliação","Marina",2],
   ["DR: tratamento","Thauanna",3],
   ["Síndrome de Irvine-Gass",null,2],
   ["Retinose Pigmentar",null,2],
@@ -74,7 +75,9 @@ const EXPECTED_LAST_AULA = '2027-03-23';
 // 25/08 caso=Victoria: o slot era dela e caiu nas férias. Na prática houve troca pontual
 // e quem apresentou foi um R3 — confirmado em 15/09, quando a vez era de um Fellow,
 // exatamente como o ciclo do app prevê.
-const ACCEPTED_VACATION_COLLISIONS = ['2026-08-25 caso=Victoria', '2026-11-10 aula=Marina'];
+// 10/11 aula=Marina (Trauma II) saiu da lista: o grupo passou o tema para um R1 e a
+// Marina assumiu DR: Classificação (ver NIVEL_EXCECOES).
+const ACCEPTED_VACATION_COLLISIONS = ['2026-08-25 caso=Victoria'];
 
 function loadEngine(htmlPath) {
   const lines = fs.readFileSync(htmlPath, 'utf8').split('\n');
