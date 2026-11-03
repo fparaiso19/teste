@@ -9380,12 +9380,10 @@ void main() {
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
-        // Os filtros de atividade do ciclo nascem TODOS desmarcados (residentes
-        // e atividades), então as atividades do ciclo ficam ocultas no calendário
-        // até o usuário marcar algo. Enquanto o usuário não interagir com esses
-        // filtros, eles continuam desmarcados mesmo após as re-renderizações de
-        // init (há várias passagens de filterPessoa() ao carregar a página).
-        let activityFiltersUserInteracted = false;
+        // Os filtros de atividade do ciclo nascem TODOS marcados (residentes e
+        // atividades): ao filtrar por residente, todas as atividades dele já
+        // aparecem. Só o que o usuário desmarcar fica desmarcado entre as
+        // re-renderizações (troca de mês, mudança de residente).
 
         function updateActivityFilterPanel() {
             const activeMonth = document.querySelector('.month-container.active');
@@ -9398,16 +9396,6 @@ void main() {
             const previouslyUncheckedResidents = new Set(
                 Array.from(document.querySelectorAll('.act-pessoa-filter:not(:checked)')).map(cb => cb.dataset.pessoa)
             );
-            // Enquanto o usuário não interagiu, trata todos os residentes E todas
-            // as atividades do ciclo como desmarcados (filtro nasce vazio e
-            // permanece vazio através das re-renderizações de init).
-            if (!activityFiltersUserInteracted) {
-                Array.from(document.querySelectorAll('.month-container.active .cycle-badge'))
-                    .forEach(badge => {
-                        previouslyUncheckedResidents.add(badge.dataset.pessoas);
-                        previouslyUncheckedActivities.add(badge.dataset.activity);
-                    });
-            }
             const activities = new Set();
             const residentsWithActivities = new Set();
             activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
@@ -9455,8 +9443,7 @@ void main() {
                 html += '</div>';
             }
             container.innerHTML = html;
-            // Aplica o filtro para refletir o estado atual (no carregamento
-            // inicial, tudo desmarcado => atividades do ciclo ficam ocultas).
+            // Aplica o filtro para refletir o estado atual.
             filterActivity();
         }
 
@@ -9493,15 +9480,11 @@ void main() {
         }
 
         // Chamado pelo onchange dos checkboxes individuais de atividade/residente.
-        // Marca que o usuário interagiu (libera o estado "tudo desmarcado" inicial)
-        // e aplica o filtro.
         function onActivityFilterChange() {
-            activityFiltersUserInteracted = true;
             filterActivity();
         }
 
         function toggleAllActivities(checkbox) {
-            activityFiltersUserInteracted = true;
             document.querySelectorAll('.act-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
@@ -9511,7 +9494,6 @@ void main() {
         }
 
         function toggleAllActivityResidents(checkbox) {
-            activityFiltersUserInteracted = true;
             document.querySelectorAll('.act-pessoa-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
