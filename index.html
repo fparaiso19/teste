@@ -222,6 +222,34 @@
             .collapse-toggle { padding: 6px 8px; }
         }
         .filter-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        /* Filtro por residente fixo: ao rolar, gruda logo abaixo da barra de
+           abas (Escala, Aulas...). Grudado, vira uma faixa compacta só com os
+           chips; minimizado, não gruda. */
+        #residentFilterPanel {
+            position: sticky;
+            top: var(--page-tabs-h, 56px);
+            z-index: 9;
+        }
+        #residentFilterPanel.collapsed { position: static; }
+        #residentFilterPanel.is-stuck:not(.collapsed) {
+            padding: 8px 12px;
+            border-radius: 0 0 12px 12px;
+            background: rgba(5,10,15,0.9);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+        #residentFilterPanel.is-stuck:not(.collapsed) .collapsible-panel-header,
+        #residentFilterPanel.is-stuck:not(.collapsed) .resident-legend { display: none !important; }
+        @media (max-width: 600px) {
+            #residentFilterPanel.is-stuck:not(.collapsed) .filter-group {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 6px;
+                scrollbar-width: none;
+            }
+            #residentFilterPanel.is-stuck:not(.collapsed) .filter-group::-webkit-scrollbar { display: none; }
+            #residentFilterPanel.is-stuck:not(.collapsed) .filter-item { flex: 0 0 auto; }
+        }
         .filter-item {
             display: flex;
             align-items: center;
@@ -1714,6 +1742,7 @@ void main() {
 <li>Nenhum conflito encontrado!</li>        </ul>
     </div>
 
+    <div id="residentFilterSentinel" aria-hidden="true"></div>
     <div class="filters collapsible-panel" id="residentFilterPanel">
         <div class="collapsible-panel-header">
             <h3>Filtrar por Residente:</h3>
@@ -1749,7 +1778,7 @@ void main() {
                 <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" checked onchange="filterPessoa()"> VICTORIA
             </label>
             </div>
-            <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
+            <div class="resident-legend" style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
                 <strong>Legenda R2:</strong>
                 <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#1565c0;border-radius:2px;display:inline-block;"></span> Aula</span>
                 <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block;"></span> Caso</span>
@@ -9221,6 +9250,32 @@ void main() {
             if (icon) icon.textContent = collapsed ? '+' : '-';
             if (text) text.textContent = collapsed ? 'Expandir' : 'Minimizar';
         }
+
+        // Mantém --page-tabs-h igual à altura real da barra de abas (muda no
+        // celular) e marca o filtro por residente como "grudado" quando o
+        // marcador logo acima dele passa para baixo da barra.
+        (function initStickyResidentFilter() {
+            const tabs = document.querySelector('.page-tabs');
+            const panel = document.getElementById('residentFilterPanel');
+            const sentinel = document.getElementById('residentFilterSentinel');
+            if (!panel || !sentinel) return;
+            let scheduled = false;
+            function update() {
+                scheduled = false;
+                const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
+                document.documentElement.style.setProperty('--page-tabs-h', tabsH + 'px');
+                const visible = panel.offsetParent !== null;
+                panel.classList.toggle('is-stuck', visible && sentinel.getBoundingClientRect().top < tabsH);
+            }
+            function schedule() {
+                if (scheduled) return;
+                scheduled = true;
+                requestAnimationFrame(update);
+            }
+            window.addEventListener('scroll', schedule, {passive: true});
+            window.addEventListener('resize', schedule);
+            update();
+        })();
 
         function toggleCollapsiblePanel(panelId) {
             const panel = document.getElementById(panelId);
