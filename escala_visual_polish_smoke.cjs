@@ -192,14 +192,11 @@ async function collectActivityPanel(page) {
     }
 
     const panel = requireNode(document.getElementById('activityFilters'), '#activityFilters');
-    const residentSection = requireNode(document.getElementById('activityResidentSection'), '#activityResidentSection');
     const groups = requireNode(document.getElementById('activityFilterGroups'), '#activityFilterGroups');
 
     return {
       visible: panel.classList.contains('visible'),
-      residentCount: residentSection.querySelectorAll('.act-pessoa-filter').length,
       groupCount: groups.querySelectorAll('.act-filter').length,
-      residentSectionChildren: residentSection.children.length,
       groupChildren: groups.children.length
     };
   });
@@ -268,9 +265,8 @@ async function toggleResidentFilterWithActivity(page) {
 
   await page.waitForFunction(() => {
     const panel = document.getElementById('activityFilters');
-    const residentSection = document.getElementById('activityResidentSection');
     const groups = document.getElementById('activityFilterGroups');
-    return Boolean(panel && panel.classList.contains('visible') && residentSection && residentSection.children.length > 0 && groups && groups.children.length > 0);
+    return Boolean(panel && panel.classList.contains('visible') && groups && groups.children.length > 0);
   });
 }
 
@@ -527,12 +523,10 @@ async function run() {
     const postActivity = await collectActivityPanel(page);
 
     assert(postActivity.visible, 'Expected activity filter panel to be visible after resident interaction');
-    assert(postActivity.residentCount > 0, 'Expected generated resident activity filters after resident interaction');
     assert(postActivity.groupCount > 0, 'Expected generated activity filters after resident interaction');
-    assert(postActivity.residentSectionChildren > 0, 'Expected resident activity filter content to be rendered after resident interaction');
     assert(postActivity.groupChildren > 0, 'Expected activity filter group content to be rendered after resident interaction');
     assert(
-      postActivity.residentCount !== preActivity.residentCount || postActivity.groupCount !== preActivity.groupCount,
+      postActivity.groupCount !== preActivity.groupCount,
       'Expected resident interaction to update the activity filter panel'
     );
 

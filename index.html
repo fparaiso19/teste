@@ -227,12 +227,13 @@
         .res-fab {
             position: fixed;
             right: 16px;
-            bottom: 16px;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             z-index: 50;
             display: none;
             align-items: center;
             gap: 6px;
-            padding: 10px 14px;
+            min-height: 44px;
+            padding: 10px 16px;
             border-radius: 999px;
             border: 1px solid rgba(48,176,208,0.45);
             background: rgba(5,10,15,0.92);
@@ -243,12 +244,15 @@
             box-shadow: 0 6px 24px rgba(0,0,0,0.45);
         }
         .res-fab.visible { display: inline-flex; }
+        .res-fab:focus-visible { outline: 2px solid #30B0D0; outline-offset: 3px; }
         .res-pop {
             position: fixed;
             right: 16px;
-            bottom: 68px;
+            bottom: calc(72px + env(safe-area-inset-bottom, 0px));
             z-index: 50;
             width: min(360px, calc(100vw - 32px));
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
             padding: 12px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
@@ -258,6 +262,7 @@
         }
         .res-pop.open { display: block; }
         .res-pop .filter-group { gap: 8px; }
+        .res-pop .filter-item { min-height: 36px; padding: 6px 12px; font-size: 13px; }
         .filter-item {
             display: flex;
             align-items: center;
@@ -816,7 +821,7 @@
         }
         @media (max-width: 760px) {
             .page-tabs {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
                 gap: 8px;
                 padding: 12px 16px;
             }
@@ -831,9 +836,16 @@
             .page-tab {
                 flex: 1;
                 min-width: 0;
-                padding: 8px 10px;
-                letter-spacing: 0.08em;
+                padding: 8px 6px;
+                letter-spacing: 0.04em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
+        }
+        @media (max-width: 420px) {
+            .page-tab-group { gap: 2px; }
+            .page-tab { padding: 8px 2px; letter-spacing: 0.02em; font-size: 0.64em; }
         }
         .page-content { display: none; }
         .page-content.active { display: block; }
@@ -1322,6 +1334,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #2A3A50; }
         ::selection { background: rgba(48,176,208,0.3); color: var(--text-primary); }
         @media print {
+            .res-fab, .res-pop { display: none !important; }
             .page-tabs { display: none !important; }
             .page-content { display: block !important; }
             #page-escala { display: none !important; }
@@ -1802,7 +1815,6 @@ void main() {
             <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('activityFilters')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
         </div>
         <div class="collapsible-panel-content">
-            <div class="activity-filter-section" id="activityResidentSection"></div>
             <div class="activity-filter-section">
                 <label class="activity-filter-item">
                     <input type="checkbox" id="actFilterAll" onchange="toggleAllActivities(this)"> Todas as atividades
@@ -9258,6 +9270,9 @@ void main() {
             if (text) text.textContent = collapsed ? 'Expandir' : 'Minimizar';
         }
 
+        // Botão flutuante "Residentes": aparece quando o filtro por residente
+        // sai da tela e abre um painel com chips que espelham os checkboxes
+        // originais (.pessoa-filter e #all), para filtrar sem voltar ao topo.
         (function initResidentFab() {
             const panel = document.getElementById('residentFilterPanel');
             if (!panel) return;
@@ -9265,52 +9280,73 @@ void main() {
             fab.type = 'button';
             fab.className = 'res-fab';
             fab.setAttribute('aria-expanded', 'false');
+            fab.setAttribute('aria-controls', 'resPop');
             const pop = document.createElement('div');
             pop.className = 'res-pop';
-            pop.setAttribute('role', 'dialog');
+            pop.id = 'resPop';
+            pop.setAttribute('role', 'group');
             pop.setAttribute('aria-label', 'Filtrar por residente');
-            document.body.append(pop, fab);
-            function originals() { return Array.from(document.querySelectorAll('.pessoa-filter')); }
-            function renderPop() {
-                const all = document.getElementById('all');
-                let html = '<div class="filter-group">';
-                html += `<label class="filter-item ${all.checked ? 'active' : ''}"><input type="checkbox" data-proxy="all" ${all.checked ? 'checked' : ''}> Todos</label>`;
-                originals().forEach(cb => {
-                    html += `<label class="filter-item ${cb.checked ? 'active' : ''}"><input type="checkbox" data-proxy="${cb.dataset.pessoa}" ${cb.checked ? 'checked' : ''}> ${cb.dataset.pessoa}</label>`;
+            document.body.append(fab, pop);
+            const originals = () => Array.from(document.querySelectorAll('.pessoa-filter'));
+            const originalFor = key => key === 'all' ? document.getElementById('all') : document.querySelector(`.pessoa-filter[data-pessoa="${key}"]`);
+            // Monta os chips uma vez; depois só sincroniza (não recria, para não perder o foco).
+            let html = '<div class="filter-group"><label class="filter-item"><input type="checkbox" data-proxy="all"> Todos</label>';
+            originals().forEach(cb => {
+                html += `<label class="filter-item"><input type="checkbox" data-proxy="${cb.dataset.pessoa}"> ${cb.dataset.pessoa}</label>`;
+            });
+            pop.innerHTML = html + '</div>';
+            function sync() {
+                pop.querySelectorAll('input[data-proxy]').forEach(input => {
+                    const orig = originalFor(input.dataset.proxy);
+                    const checked = !!(orig && orig.checked);
+                    input.checked = checked;
+                    input.parentElement.classList.toggle('active', checked);
                 });
-                pop.innerHTML = html + '</div>';
                 const n = originals().filter(cb => cb.checked).length;
                 fab.textContent = `👤 Residentes (${n}/${originals().length})`;
             }
-            pop.addEventListener('change', e => {
-                const key = e.target.dataset.proxy;
-                const target = key === 'all' ? document.getElementById('all') : document.querySelector(`.pessoa-filter[data-pessoa="${key}"]`);
-                if (target) target.click();
-                renderPop();
-            });
-            fab.addEventListener('click', () => {
-                const open = !pop.classList.contains('open');
-                if (open) renderPop();
+            function setOpen(open, {focus = false} = {}) {
+                const hadFocusInside = pop.contains(document.activeElement);
                 pop.classList.toggle('open', open);
                 fab.setAttribute('aria-expanded', String(open));
+                if (open) {
+                    sync();
+                    if (focus) pop.querySelector('input')?.focus();
+                } else if (hadFocusInside) {
+                    (fab.classList.contains('visible') ? fab : panel.querySelector('input'))?.focus();
+                }
+            }
+            pop.addEventListener('change', e => {
+                const orig = originalFor(e.target.dataset.proxy);
+                if (orig) orig.click();
+                sync();
             });
+            fab.addEventListener('click', e => setOpen(!pop.classList.contains('open'), {focus: e.detail === 0}));
             document.addEventListener('keydown', e => {
-                if (e.key === 'Escape' && pop.classList.contains('open')) { pop.classList.remove('open'); fab.setAttribute('aria-expanded', 'false'); }
+                if (e.key === 'Escape' && pop.classList.contains('open')) setOpen(false);
             });
-            document.addEventListener('change', e => { if (e.target.matches('.pessoa-filter, #all')) renderPop(); });
+            document.addEventListener('click', e => {
+                // Ignora o clique sintético que os chips disparam no checkbox original.
+                if (!e.isTrusted) return;
+                if (pop.classList.contains('open') && !pop.contains(e.target) && !fab.contains(e.target)) setOpen(false);
+            });
+            document.addEventListener('change', e => { if (e.target.matches('.pessoa-filter, #all')) sync(); });
             let scheduled = false;
             function update() {
                 scheduled = false;
                 const onPage = panel.offsetParent !== null;
                 const offscreen = onPage && panel.getBoundingClientRect().bottom < 60;
-                fab.classList.toggle('visible', offscreen);
-                if (!offscreen) { pop.classList.remove('open'); fab.setAttribute('aria-expanded', 'false'); }
+                // Com o painel aberto, o botão continua visível mesmo que a página
+                // encolha e o filtro original volte à tela (ex.: agenda sem ninguém).
+                const show = onPage && (offscreen || pop.classList.contains('open'));
+                fab.classList.toggle('visible', show);
+                if (!show && pop.classList.contains('open')) setOpen(false);
             }
             const schedule = () => { if (!scheduled) { scheduled = true; requestAnimationFrame(update); } };
             window.addEventListener('scroll', schedule, {passive: true});
             window.addEventListener('resize', schedule);
-            document.addEventListener('click', schedule);
-            renderPop();
+            document.querySelectorAll('.page-tab').forEach(tab => tab.addEventListener('click', schedule));
+            sync();
             update();
         })();
 
@@ -9485,35 +9521,12 @@ void main() {
             const previouslyUncheckedActivities = new Set(
                 Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.actKey)
             );
-            const previouslyUncheckedResidents = new Set(
-                Array.from(document.querySelectorAll('.act-pessoa-filter:not(:checked)')).map(cb => cb.dataset.pessoa)
-            );
             const activitiesBySlot = {AM: new Set(), PM: new Set()};
-            const residentsWithActivities = new Set();
             activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
                 if (selectedPessoas.includes(badge.dataset.pessoas)) {
                     (activitiesBySlot[badge.dataset.slot] || activitiesBySlot.AM).add(badge.dataset.activity);
-                    residentsWithActivities.add(badge.dataset.pessoas);
                 }
             });
-            const residentSection = document.getElementById('activityResidentSection');
-            const availableResidents = selectedPessoas.filter(pessoa => residentsWithActivities.has(pessoa));
-            let residentHtml = '';
-            if (availableResidents.length > 0) {
-                const allResidentsChecked = availableResidents.every(pessoa => !previouslyUncheckedResidents.has(pessoa));
-                const allResAttr = allResidentsChecked ? 'checked' : '';
-                const allResClass = allResidentsChecked ? 'active' : '';
-                residentHtml += '<span class="activity-filter-group-label">Residentes:</span><div class="activity-filter-group">';
-                residentHtml += `<label class="activity-filter-item ${allResClass}"><input type="checkbox" id="actResidentAll" ${allResAttr} onchange="toggleAllActivityResidents(this)"> Todos os residentes</label>`;
-                availableResidents.forEach(pessoa => {
-                    const isChecked = !previouslyUncheckedResidents.has(pessoa);
-                    const checkedAttr = isChecked ? 'checked' : '';
-                    const activeClass = isChecked ? 'active' : '';
-                    residentHtml += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-pessoa-filter" data-pessoa="${pessoa}" ${checkedAttr} onchange="onActivityFilterChange()"> ${pessoa}</label>`;
-                });
-                residentHtml += '</div>';
-            }
-            residentSection.innerHTML = residentHtml;
             // Separa as atividades por turno (Manhã/Tarde). Dentro de cada turno,
             // mantém a ordem Ambulatório → Cirurgia → PO → Outros.
             const categoryRank = act => act.startsWith('Amb.') ? 0 : act.startsWith('Cir.') ? 1 : act === 'PO' ? 2 : 3;
@@ -9540,52 +9553,33 @@ void main() {
 
         function filterActivity() {
             const allActCbs = document.querySelectorAll('.act-filter');
-            const allResidentCbs = document.querySelectorAll('.act-pessoa-filter');
-            if (allActCbs.length === 0 && allResidentCbs.length === 0) {
+            if (allActCbs.length === 0) {
                 document.querySelectorAll('.cycle-badge.hidden-activity').forEach(b => b.classList.remove('hidden-activity'));
                 if (escalaViewMode === 'agenda') renderAgenda();
                 return;
             }
             const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.actKey);
-            const checkedResidents = Array.from(document.querySelectorAll('.act-pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
             const allActivitiesChecked = allActCbs.length > 0 && checkedActivities.length === allActCbs.length;
-            const allResidentsChecked = allResidentCbs.length > 0 && checkedResidents.length === allResidentCbs.length;
             document.querySelectorAll('.cycle-badge').forEach(badge => {
-                const activityVisible = allActCbs.length === 0 || checkedActivities.includes(`${badge.dataset.slot}|${badge.dataset.activity}`);
-                const residentVisible = allResidentCbs.length === 0 || checkedResidents.includes(badge.dataset.pessoas);
-                badge.classList.toggle('hidden-activity', !(activityVisible && residentVisible));
+                const activityVisible = checkedActivities.includes(`${badge.dataset.slot}|${badge.dataset.activity}`);
+                badge.classList.toggle('hidden-activity', !activityVisible);
             });
             const allCb = document.getElementById('actFilterAll');
             if (allCb) {
                 allCb.checked = allActivitiesChecked;
                 allCb.parentElement.classList.toggle('active', allActivitiesChecked);
             }
-            const allResidentCb = document.getElementById('actResidentAll');
-            if (allResidentCb) {
-                allResidentCb.checked = allResidentsChecked;
-                allResidentCb.parentElement.classList.toggle('active', allResidentsChecked);
-            }
             allActCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
-            allResidentCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
-        // Chamado pelo onchange dos checkboxes individuais de atividade/residente.
+        // Chamado pelo onchange dos checkboxes individuais de atividade.
         function onActivityFilterChange() {
             filterActivity();
         }
 
         function toggleAllActivities(checkbox) {
             document.querySelectorAll('.act-filter').forEach(cb => {
-                cb.checked = checkbox.checked;
-                cb.parentElement.classList.toggle('active', checkbox.checked);
-            });
-            checkbox.parentElement.classList.toggle('active', checkbox.checked);
-            filterActivity();
-        }
-
-        function toggleAllActivityResidents(checkbox) {
-            document.querySelectorAll('.act-pessoa-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
             });
