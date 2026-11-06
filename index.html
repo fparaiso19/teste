@@ -845,7 +845,7 @@
         }
         @media (max-width: 420px) {
             .page-tab-group { gap: 2px; }
-            .page-tab { padding: 8px 2px; letter-spacing: 0.02em; font-size: 0.64em; }
+            .page-tab { padding: 8px 0; letter-spacing: 0; font-size: 0.74em; }
         }
         .page-content { display: none; }
         .page-content.active { display: block; }
@@ -9304,6 +9304,7 @@ void main() {
                 });
                 const n = originals().filter(cb => cb.checked).length;
                 fab.textContent = `👤 Residentes (${n}/${originals().length})`;
+                fab.setAttribute('aria-label', `Filtrar por residente: ${n} de ${originals().length} selecionados`);
             }
             function setOpen(open, {focus = false} = {}) {
                 const hadFocusInside = pop.contains(document.activeElement);
@@ -9320,6 +9321,10 @@ void main() {
                 const orig = originalFor(e.target.dataset.proxy);
                 if (orig) orig.click();
                 sync();
+            });
+            // Fecha quando o foco sai do painel e do botão (ex.: Tab depois do último chip).
+            pop.addEventListener('focusout', e => {
+                if (e.relatedTarget && !pop.contains(e.relatedTarget) && e.relatedTarget !== fab) setOpen(false);
             });
             fab.addEventListener('click', e => setOpen(!pop.classList.contains('open'), {focus: e.detail === 0}));
             document.addEventListener('keydown', e => {
@@ -9508,9 +9513,8 @@ void main() {
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
-        // Os filtros de atividade do ciclo nascem TODOS marcados (residentes e
-        // atividades): ao filtrar por residente, todas as atividades dele já
-        // aparecem. Só o que o usuário desmarcar fica desmarcado entre as
+        // Os filtros de atividade do ciclo nascem TODOS marcados: ao filtrar
+        // por residente, todas as atividades dele já aparecem. Só o que o usuário desmarcar fica desmarcado entre as
         // re-renderizações (troca de mês, mudança de residente).
 
         function updateActivityFilterPanel() {
