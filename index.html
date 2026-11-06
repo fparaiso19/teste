@@ -229,6 +229,7 @@
             position: sticky;
             top: var(--page-tabs-h, 56px);
             z-index: 9;
+            overflow-anchor: none;
         }
         #residentFilterPanel.collapsed { position: static; }
         #residentFilterPanel.is-stuck:not(.collapsed) {
@@ -240,7 +241,12 @@
         }
         #residentFilterPanel.is-stuck:not(.collapsed) .collapsible-panel-header,
         #residentFilterPanel.is-stuck:not(.collapsed) .resident-legend { display: none !important; }
-        @media (max-width: 600px) {
+        @media print {
+            #residentFilterPanel { position: static; }
+            #residentFilterPanel.is-stuck .collapsible-panel-header { display: flex; }
+            #residentFilterPanel.is-stuck .resident-legend { display: flex !important; }
+        }
+        @media (max-width: 760px) {
             #residentFilterPanel.is-stuck:not(.collapsed) .filter-group {
                 flex-wrap: nowrap;
                 overflow-x: auto;
@@ -1749,7 +1755,7 @@ void main() {
             <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
         </div>
         <div class="collapsible-panel-content">
-            <div class="filter-group">
+            <div class="filter-group" role="group" aria-label="Filtrar por residente">
                 <label class="filter-item">
                     <input type="checkbox" id="all" checked onchange="toggleAll(this)"> Todos
                 </label>
@@ -9265,7 +9271,19 @@ void main() {
                 const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
                 document.documentElement.style.setProperty('--page-tabs-h', tabsH + 'px');
                 const visible = panel.offsetParent !== null;
-                panel.classList.toggle('is-stuck', visible && sentinel.getBoundingClientRect().top < tabsH);
+                const shouldStick = visible && !panel.classList.contains('collapsed') && sentinel.getBoundingClientRect().top < tabsH;
+                // Ao grudar, o painel encolhe (some título e legenda). Para o
+                // conteúdo abaixo não pular — e o navegador não compensar a
+                // rolagem e desgrudar de novo, piscando — a diferença de altura
+                // vira margin-bottom enquanto estiver grudado.
+                panel.classList.remove('is-stuck');
+                panel.style.marginBottom = '';
+                if (!shouldStick) return;
+                const expandedH = panel.getBoundingClientRect().height;
+                panel.classList.add('is-stuck');
+                const compactH = panel.getBoundingClientRect().height;
+                const baseMargin = parseFloat(getComputedStyle(panel).marginBottom) || 0;
+                panel.style.marginBottom = (baseMargin + expandedH - compactH) + 'px';
             }
             function schedule() {
                 if (scheduled) return;
@@ -9281,6 +9299,7 @@ void main() {
             const panel = document.getElementById(panelId);
             if (!panel) return;
             setCollapsiblePanelCollapsed(panel, !panel.classList.contains('collapsed'));
+            window.dispatchEvent(new Event('resize'));
         }
 
         function initializeCollapsibleTables() {
