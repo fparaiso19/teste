@@ -1714,10 +1714,10 @@ void main() {
 <li>Nenhum conflito encontrado!</li>        </ul>
     </div>
 
-    <div class="filters collapsible-panel collapsed" id="residentFilterPanel">
+    <div class="filters collapsible-panel" id="residentFilterPanel">
         <div class="collapsible-panel-header">
             <h3>Filtrar por Residente:</h3>
-            <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
+            <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
         </div>
         <div class="collapsible-panel-content">
             <div class="filter-group">
@@ -9380,12 +9380,10 @@ void main() {
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
-        // Os filtros de atividade do ciclo nascem TODOS desmarcados (residentes
-        // e atividades), então as atividades do ciclo ficam ocultas no calendário
-        // até o usuário marcar algo. Enquanto o usuário não interagir com esses
-        // filtros, eles continuam desmarcados mesmo após as re-renderizações de
-        // init (há várias passagens de filterPessoa() ao carregar a página).
-        let activityFiltersUserInteracted = false;
+        // Os filtros de atividade do ciclo nascem TODOS marcados (residentes e
+        // atividades): ao filtrar por residente, todas as atividades dele já
+        // aparecem. Só o que o usuário desmarcar fica desmarcado entre as
+        // re-renderizações (troca de mês, mudança de residente).
 
         function updateActivityFilterPanel() {
             const activeMonth = document.querySelector('.month-container.active');
@@ -9393,26 +9391,16 @@ void main() {
             const selectedPessoas = Array.from(document.querySelectorAll('.pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
             // Preserve unchecked state before rebuilding
             const previouslyUncheckedActivities = new Set(
-                Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.activity)
+                Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.actKey)
             );
             const previouslyUncheckedResidents = new Set(
                 Array.from(document.querySelectorAll('.act-pessoa-filter:not(:checked)')).map(cb => cb.dataset.pessoa)
             );
-            // Enquanto o usuário não interagiu, trata todos os residentes E todas
-            // as atividades do ciclo como desmarcados (filtro nasce vazio e
-            // permanece vazio através das re-renderizações de init).
-            if (!activityFiltersUserInteracted) {
-                Array.from(document.querySelectorAll('.month-container.active .cycle-badge'))
-                    .forEach(badge => {
-                        previouslyUncheckedResidents.add(badge.dataset.pessoas);
-                        previouslyUncheckedActivities.add(badge.dataset.activity);
-                    });
-            }
-            const activities = new Set();
+            const activitiesBySlot = {AM: new Set(), PM: new Set()};
             const residentsWithActivities = new Set();
             activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
                 if (selectedPessoas.includes(badge.dataset.pessoas)) {
-                    activities.add(badge.dataset.activity);
+                    (activitiesBySlot[badge.dataset.slot] || activitiesBySlot.AM).add(badge.dataset.activity);
                     residentsWithActivities.add(badge.dataset.pessoas);
                 }
             });
@@ -9434,29 +9422,27 @@ void main() {
                 residentHtml += '</div>';
             }
             residentSection.innerHTML = residentHtml;
-            const groups = {'Ambulatorio':[], 'Cirurgia':[], 'PO':[], 'Outros':[]};
-            activities.forEach(act => {
-                if (act.startsWith('Amb.')) groups['Ambulatorio'].push(act);
-                else if (act.startsWith('Cir.')) groups['Cirurgia'].push(act);
-                else if (act === 'PO') groups['PO'].push(act);
-                else groups['Outros'].push(act);
-            });
+            // Separa as atividades por turno (Manhã/Tarde). Dentro de cada turno,
+            // mantém a ordem Ambulatório → Cirurgia → PO → Outros.
+            const categoryRank = act => act.startsWith('Amb.') ? 0 : act.startsWith('Cir.') ? 1 : act === 'PO' ? 2 : 3;
             const container = document.getElementById('activityFilterGroups');
             let html = '';
-            for (const [label, acts] of Object.entries(groups)) {
-                if (acts.length === 0) continue;
+            [['AM', '☀️ Manhã'], ['PM', '🌙 Tarde']].forEach(([slot, label]) => {
+                const acts = Array.from(activitiesBySlot[slot])
+                    .sort((x, y) => categoryRank(x) - categoryRank(y) || x.localeCompare(y));
+                if (acts.length === 0) return;
                 html += `<span class="activity-filter-group-label">${label}:</span><div class="activity-filter-group">`;
-                acts.sort().forEach(act => {
-                    const isChecked = !previouslyUncheckedActivities.has(act);
+                acts.forEach(act => {
+                    const key = `${slot}|${act}`;
+                    const isChecked = !previouslyUncheckedActivities.has(key);
                     const checkedAttr = isChecked ? 'checked' : '';
                     const activeClass = isChecked ? 'active' : '';
-                    html += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-filter" data-activity="${act}" ${checkedAttr} onchange="onActivityFilterChange()"> ${act}</label>`;
+                    html += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-filter" data-act-key="${key}" ${checkedAttr} onchange="onActivityFilterChange()"> ${act}</label>`;
                 });
                 html += '</div>';
-            }
+            });
             container.innerHTML = html;
-            // Aplica o filtro para refletir o estado atual (no carregamento
-            // inicial, tudo desmarcado => atividades do ciclo ficam ocultas).
+            // Aplica o filtro para refletir o estado atual.
             filterActivity();
         }
 
@@ -9468,12 +9454,12 @@ void main() {
                 if (escalaViewMode === 'agenda') renderAgenda();
                 return;
             }
-            const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.activity);
+            const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.actKey);
             const checkedResidents = Array.from(document.querySelectorAll('.act-pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
             const allActivitiesChecked = allActCbs.length > 0 && checkedActivities.length === allActCbs.length;
             const allResidentsChecked = allResidentCbs.length > 0 && checkedResidents.length === allResidentCbs.length;
             document.querySelectorAll('.cycle-badge').forEach(badge => {
-                const activityVisible = allActCbs.length === 0 || checkedActivities.includes(badge.dataset.activity);
+                const activityVisible = allActCbs.length === 0 || checkedActivities.includes(`${badge.dataset.slot}|${badge.dataset.activity}`);
                 const residentVisible = allResidentCbs.length === 0 || checkedResidents.includes(badge.dataset.pessoas);
                 badge.classList.toggle('hidden-activity', !(activityVisible && residentVisible));
             });
@@ -9493,15 +9479,11 @@ void main() {
         }
 
         // Chamado pelo onchange dos checkboxes individuais de atividade/residente.
-        // Marca que o usuário interagiu (libera o estado "tudo desmarcado" inicial)
-        // e aplica o filtro.
         function onActivityFilterChange() {
-            activityFiltersUserInteracted = true;
             filterActivity();
         }
 
         function toggleAllActivities(checkbox) {
-            activityFiltersUserInteracted = true;
             document.querySelectorAll('.act-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
@@ -9511,7 +9493,6 @@ void main() {
         }
 
         function toggleAllActivityResidents(checkbox) {
-            activityFiltersUserInteracted = true;
             document.querySelectorAll('.act-pessoa-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
@@ -10212,6 +10193,7 @@ void main() {
                             if (a.act === 'Livre' || a.act === 'PO') badge.classList.add('badge-livre');
                             badge.dataset.pessoas = nameUp;
                             badge.dataset.activity = a.act;
+                            badge.dataset.slot = a.slot;
                             const emoji = a.slot === 'AM' ? '☀️' : '🌙';
                             badge.textContent = `${emoji} ${nameUp} (${a.act})`;
                             cell.appendChild(badge);
@@ -10325,6 +10307,7 @@ void main() {
                         if (a.act === 'Livre' || a.act === 'PO') badge.classList.add('badge-livre');
                         badge.dataset.pessoas = nameUp;
                         badge.dataset.activity = a.act;
+                        badge.dataset.slot = a.slot;
                         const emoji = a.slot === 'AM' ? '☀️' : '🌙';
                         badge.textContent = `${emoji} ${nameUp} (${a.act})`;
                         cell.appendChild(badge);
@@ -10336,6 +10319,24 @@ void main() {
                 }
             });
             if (typeof filterPessoa === 'function') filterPessoa();
+        })();
+
+        // --- ORDENA OS BADGES DE ATIVIDADE DO CICLO DENTRO DE CADA DIA ---
+        // Primeiro todos os da manhã, depois os da tarde; em cada turno, por
+        // ordem alfabética de residente. Os demais badges do dia não se movem.
+        (function sortCycleBadgesInDays() {
+            const slotRank = slot => slot === 'PM' ? 1 : 0;
+            document.querySelectorAll('.day[data-date]').forEach(cell => {
+                const badges = Array.from(cell.querySelectorAll(':scope > .cycle-badge'));
+                if (badges.length < 2) return;
+                const anchor = document.createComment('');
+                badges[0].before(anchor);
+                badges
+                    .sort((a, b) => slotRank(a.dataset.slot) - slotRank(b.dataset.slot)
+                        || a.dataset.pessoas.localeCompare(b.dataset.pessoas, 'pt'))
+                    .forEach(badge => anchor.before(badge));
+                anchor.remove();
+            });
         })();
 
         // --- INJECT CICLOS TABLE ---
