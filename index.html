@@ -222,6 +222,28 @@
             .collapse-toggle { padding: 6px 8px; }
         }
         .filter-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        /* Chips de residente dentro da barra de abas (só na página Escala). */
+        .tabs-res-row {
+            grid-column: 1 / -1;
+            display: none;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 0 8px;
+        }
+        body.on-escala .tabs-res-row { display: flex; }
+        .tabs-res-row .filter-item { padding: 3px 9px; font-size: 11px; }
+        @media (max-width: 760px) {
+            .tabs-res-row {
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                scrollbar-width: none;
+                padding-bottom: 0;
+            }
+            .tabs-res-row::-webkit-scrollbar { display: none; }
+            .tabs-res-row .filter-item { flex: 0 0 auto; }
+        }
         .filter-item {
             display: flex;
             align-items: center;
@@ -9221,6 +9243,36 @@ void main() {
             if (icon) icon.textContent = collapsed ? '+' : '-';
             if (text) text.textContent = collapsed ? 'Expandir' : 'Minimizar';
         }
+
+        (function initTabsResidentRow() {
+            const tabs = document.querySelector('.page-tabs');
+            const escala = document.getElementById('page-escala');
+            if (!tabs || !escala) return;
+            const row = document.createElement('div');
+            row.className = 'tabs-res-row';
+            row.setAttribute('aria-label', 'Filtrar por residente');
+            tabs.appendChild(row);
+            function originals() { return Array.from(document.querySelectorAll('.pessoa-filter')); }
+            function render() {
+                const all = document.getElementById('all');
+                let html = `<label class="filter-item ${all.checked ? 'active' : ''}"><input type="checkbox" data-proxy="all" ${all.checked ? 'checked' : ''}> Todos</label>`;
+                originals().forEach(cb => {
+                    html += `<label class="filter-item ${cb.checked ? 'active' : ''}"><input type="checkbox" data-proxy="${cb.dataset.pessoa}" ${cb.checked ? 'checked' : ''}> ${cb.dataset.pessoa}</label>`;
+                });
+                row.innerHTML = html;
+            }
+            row.addEventListener('change', e => {
+                const key = e.target.dataset.proxy;
+                const target = key === 'all' ? document.getElementById('all') : document.querySelector(`.pessoa-filter[data-pessoa="${key}"]`);
+                if (target) target.click();
+                render();
+            });
+            document.addEventListener('change', e => { if (e.target.matches('.pessoa-filter, #all')) render(); });
+            const syncPage = () => document.body.classList.toggle('on-escala', escala.classList.contains('active'));
+            new MutationObserver(syncPage).observe(escala, {attributes: true, attributeFilter: ['class']});
+            render();
+            syncPage();
+        })();
 
         function toggleCollapsiblePanel(panelId) {
             const panel = document.getElementById(panelId);
