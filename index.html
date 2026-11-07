@@ -222,6 +222,52 @@
             .collapse-toggle { padding: 6px 8px; }
         }
         .filter-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        /* Botão flutuante "Residentes": aparece quando o filtro por residente
+           sai da tela e abre um painel com os mesmos chips. */
+        .res-fab {
+            position: fixed;
+            right: 16px;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            z-index: 50;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            min-height: 44px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(48,176,208,0.45);
+            background: rgba(5,10,15,0.92);
+            color: #30B0D0;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+        }
+        .res-fab.visible { display: inline-flex; }
+        /* Com o modal de exportar aberto, o botão sai da frente. */
+        body:has(#icsModal.active) .res-fab,
+        body:has(#icsModal.active) .res-pop { display: none !important; }
+        /* Espaço no fim da Escala para o botão não cobrir o último painel. */
+        #page-escala { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+        .res-fab:focus-visible { outline: 2px solid #30B0D0; outline-offset: 3px; }
+        .res-pop {
+            position: fixed;
+            right: 16px;
+            bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+            z-index: 50;
+            width: min(360px, calc(100vw - 32px));
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(5,10,15,0.96);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .res-pop.open { display: block; }
+        .res-pop .filter-group { gap: 8px; }
+        .res-pop .filter-item { min-height: 36px; padding: 6px 12px; font-size: 13px; }
         .filter-item {
             display: flex;
             align-items: center;
@@ -780,7 +826,7 @@
         }
         @media (max-width: 760px) {
             .page-tabs {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
                 gap: 8px;
                 padding: 12px 16px;
             }
@@ -795,9 +841,16 @@
             .page-tab {
                 flex: 1;
                 min-width: 0;
-                padding: 8px 10px;
-                letter-spacing: 0.08em;
+                padding: 8px 6px;
+                letter-spacing: 0.04em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
+        }
+        @media (max-width: 420px) {
+            .page-tab-group { gap: 2px; }
+            .page-tab { padding: 8px 0; letter-spacing: 0; font-size: 0.74em; }
         }
         .page-content { display: none; }
         .page-content.active { display: block; }
@@ -1286,6 +1339,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #2A3A50; }
         ::selection { background: rgba(48,176,208,0.3); color: var(--text-primary); }
         @media print {
+            .res-fab, .res-pop { display: none !important; }
             .page-tabs { display: none !important; }
             .page-content { display: block !important; }
             #page-escala { display: none !important; }
@@ -1714,7 +1768,9 @@ void main() {
 <li>Nenhum conflito encontrado!</li>        </ul>
     </div>
 
-    <div class="filters collapsible-panel" id="residentFilterPanel">
+    <!-- Escondido: o filtro por residente é usado pelo botão "Residentes".
+         Os checkboxes daqui continuam guardando o estado do filtro. -->
+    <div class="filters collapsible-panel" id="residentFilterPanel" hidden>
         <div class="collapsible-panel-header">
             <h3>Filtrar por Residente:</h3>
             <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
@@ -1749,14 +1805,6 @@ void main() {
                 <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" checked onchange="filterPessoa()"> VICTORIA
             </label>
             </div>
-            <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
-                <strong>Legenda R2:</strong>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#1565c0;border-radius:2px;display:inline-block;"></span> Aula</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block;"></span> Caso</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#e65100;border-radius:2px;display:inline-block;"></span> Artigo</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:var(--bg-tertiary);border:1px dotted var(--border-color);border-radius:2px;display:inline-block;"></span> Sem Reunião</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#00897b;border-radius:2px;display:inline-block;"></span> Atividade Ciclo</span>
-            </div>
         </div>
     </div>
 
@@ -1766,7 +1814,6 @@ void main() {
             <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('activityFilters')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
         </div>
         <div class="collapsible-panel-content">
-            <div class="activity-filter-section" id="activityResidentSection"></div>
             <div class="activity-filter-section">
                 <label class="activity-filter-item">
                     <input type="checkbox" id="actFilterAll" onchange="toggleAllActivities(this)"> Todas as atividades
@@ -8729,6 +8776,11 @@ void main() {
             <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('calendarLegendPanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
         </div>
         <div class="legenda-items collapsible-panel-content">
+            <div class="legenda-item"><div class="legenda-color" style="background: #1565c0;"></div> Aula R2</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: #c62828;"></div> Caso R2</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: #e65100;"></div> Artigo R2</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: var(--bg-tertiary); border: 1px dotted var(--border-color);"></div> Sem Reunião</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: #00897b;"></div> Atividade Ciclo</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--weekend-bg); border: 1px solid var(--border-color);"></div> Fim de semana</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--feriado-bg); border: 1px solid var(--border-color);"></div> Feriado</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--recesso-bg); border: 1px solid var(--border-color);"></div> Recesso</div>
@@ -9222,6 +9274,86 @@ void main() {
             if (text) text.textContent = collapsed ? 'Expandir' : 'Minimizar';
         }
 
+        // Botão flutuante "Residentes": fica sempre visível na página Escala e
+        // abre um painel com chips que espelham os checkboxes do filtro por
+        // residente (.pessoa-filter e #all, num painel escondido).
+        (function initResidentFab() {
+            const escalaPage = document.getElementById('page-escala');
+            if (!document.getElementById('residentFilterPanel')) return;
+            const fab = document.createElement('button');
+            fab.type = 'button';
+            fab.className = 'res-fab';
+            fab.setAttribute('aria-expanded', 'false');
+            fab.setAttribute('aria-controls', 'resPop');
+            const pop = document.createElement('div');
+            pop.className = 'res-pop';
+            pop.id = 'resPop';
+            pop.setAttribute('role', 'group');
+            pop.setAttribute('aria-label', 'Filtrar por residente');
+            document.body.append(fab, pop);
+            const originals = () => Array.from(document.querySelectorAll('.pessoa-filter'));
+            const originalFor = key => key === 'all' ? document.getElementById('all') : document.querySelector(`.pessoa-filter[data-pessoa="${key}"]`);
+            // Monta os chips uma vez; depois só sincroniza (não recria, para não perder o foco).
+            let html = '<div class="filter-group"><label class="filter-item"><input type="checkbox" data-proxy="all"> Todos</label>';
+            originals().forEach(cb => {
+                html += `<label class="filter-item"><input type="checkbox" data-proxy="${cb.dataset.pessoa}"> ${cb.dataset.pessoa}</label>`;
+            });
+            pop.innerHTML = html + '</div>';
+            function sync() {
+                pop.querySelectorAll('input[data-proxy]').forEach(input => {
+                    const orig = originalFor(input.dataset.proxy);
+                    const checked = !!(orig && orig.checked);
+                    input.checked = checked;
+                    input.parentElement.classList.toggle('active', checked);
+                });
+                const n = originals().filter(cb => cb.checked).length;
+                fab.textContent = `👤 Residentes (${n}/${originals().length})`;
+                fab.setAttribute('aria-label', `Filtrar por residente: ${n} de ${originals().length} selecionados`);
+            }
+            function setOpen(open, {focus = false} = {}) {
+                const hadFocusInside = pop.contains(document.activeElement);
+                pop.classList.toggle('open', open);
+                fab.setAttribute('aria-expanded', String(open));
+                if (open) {
+                    sync();
+                    if (focus) pop.querySelector('input')?.focus();
+                } else if (hadFocusInside) {
+                    if (fab.classList.contains('visible')) fab.focus();
+                }
+            }
+            pop.addEventListener('change', e => {
+                const orig = originalFor(e.target.dataset.proxy);
+                if (orig) orig.click();
+                sync();
+            });
+            // Fecha quando o foco sai do painel e do botão (ex.: Tab depois do último chip).
+            pop.addEventListener('focusout', e => {
+                if (e.relatedTarget && !pop.contains(e.relatedTarget) && e.relatedTarget !== fab) setOpen(false);
+            });
+            fab.addEventListener('click', e => setOpen(!pop.classList.contains('open'), {focus: e.detail === 0}));
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && pop.classList.contains('open')) setOpen(false);
+            });
+            document.addEventListener('click', e => {
+                // Ignora o clique sintético que os chips disparam no checkbox original.
+                if (!e.isTrusted) return;
+                if (pop.classList.contains('open') && !pop.contains(e.target) && !fab.contains(e.target)) setOpen(false);
+            });
+            document.addEventListener('change', e => { if (e.target.matches('.pessoa-filter, #all')) sync(); });
+            let scheduled = false;
+            function update() {
+                scheduled = false;
+                const show = !!escalaPage && escalaPage.classList.contains('active');
+                fab.classList.toggle('visible', show);
+                if (!show && pop.classList.contains('open')) setOpen(false);
+            }
+            const schedule = () => { if (!scheduled) { scheduled = true; requestAnimationFrame(update); } };
+            // Mostra/esconde ao trocar de aba (Escala ↔ Aulas, Ciclos...).
+            if (escalaPage) new MutationObserver(schedule).observe(escalaPage, {attributes: true, attributeFilter: ['class']});
+            sync();
+            update();
+        })();
+
         function toggleCollapsiblePanel(panelId) {
             const panel = document.getElementById(panelId);
             if (!panel) return;
@@ -9380,9 +9512,8 @@ void main() {
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
-        // Os filtros de atividade do ciclo nascem TODOS marcados (residentes e
-        // atividades): ao filtrar por residente, todas as atividades dele já
-        // aparecem. Só o que o usuário desmarcar fica desmarcado entre as
+        // Os filtros de atividade do ciclo nascem TODOS marcados: ao filtrar
+        // por residente, todas as atividades dele já aparecem. Só o que o usuário desmarcar fica desmarcado entre as
         // re-renderizações (troca de mês, mudança de residente).
 
         function updateActivityFilterPanel() {
@@ -9393,45 +9524,24 @@ void main() {
             const previouslyUncheckedActivities = new Set(
                 Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.actKey)
             );
-            const previouslyUncheckedResidents = new Set(
-                Array.from(document.querySelectorAll('.act-pessoa-filter:not(:checked)')).map(cb => cb.dataset.pessoa)
-            );
             const activitiesBySlot = {AM: new Set(), PM: new Set()};
-            const residentsWithActivities = new Set();
             activeMonth.querySelectorAll('.cycle-badge').forEach(badge => {
                 if (selectedPessoas.includes(badge.dataset.pessoas)) {
                     (activitiesBySlot[badge.dataset.slot] || activitiesBySlot.AM).add(badge.dataset.activity);
-                    residentsWithActivities.add(badge.dataset.pessoas);
                 }
             });
-            const residentSection = document.getElementById('activityResidentSection');
-            const availableResidents = selectedPessoas.filter(pessoa => residentsWithActivities.has(pessoa));
-            let residentHtml = '';
-            if (availableResidents.length > 0) {
-                const allResidentsChecked = availableResidents.every(pessoa => !previouslyUncheckedResidents.has(pessoa));
-                const allResAttr = allResidentsChecked ? 'checked' : '';
-                const allResClass = allResidentsChecked ? 'active' : '';
-                residentHtml += '<span class="activity-filter-group-label">Residentes:</span><div class="activity-filter-group">';
-                residentHtml += `<label class="activity-filter-item ${allResClass}"><input type="checkbox" id="actResidentAll" ${allResAttr} onchange="toggleAllActivityResidents(this)"> Todos os residentes</label>`;
-                availableResidents.forEach(pessoa => {
-                    const isChecked = !previouslyUncheckedResidents.has(pessoa);
-                    const checkedAttr = isChecked ? 'checked' : '';
-                    const activeClass = isChecked ? 'active' : '';
-                    residentHtml += `<label class="activity-filter-item ${activeClass}"><input type="checkbox" class="act-pessoa-filter" data-pessoa="${pessoa}" ${checkedAttr} onchange="onActivityFilterChange()"> ${pessoa}</label>`;
-                });
-                residentHtml += '</div>';
-            }
-            residentSection.innerHTML = residentHtml;
             // Separa as atividades por turno (Manhã/Tarde). Dentro de cada turno,
             // mantém a ordem Ambulatório → Cirurgia → PO → Outros.
             const categoryRank = act => act.startsWith('Amb.') ? 0 : act.startsWith('Cir.') ? 1 : act === 'PO' ? 2 : 3;
             const container = document.getElementById('activityFilterGroups');
             let html = '';
-            [['AM', '☀️ Manhã'], ['PM', '🌙 Tarde']].forEach(([slot, label]) => {
+            [['AM', '☀️ Manhã', 'Todas da manhã'], ['PM', '🌙 Tarde', 'Todas da tarde']].forEach(([slot, label, allLabel]) => {
                 const acts = Array.from(activitiesBySlot[slot])
                     .sort((x, y) => categoryRank(x) - categoryRank(y) || x.localeCompare(y));
                 if (acts.length === 0) return;
                 html += `<span class="activity-filter-group-label">${label}:</span><div class="activity-filter-group">`;
+                // Marca/desmarca todas as atividades deste turno; o estado é sincronizado em filterActivity().
+                html += `<label class="activity-filter-item"><input type="checkbox" class="act-slot-all" data-slot="${slot}" onchange="toggleSlotActivities(this)"> <strong>${allLabel}</strong></label>`;
                 acts.forEach(act => {
                     const key = `${slot}|${act}`;
                     const isChecked = !previouslyUncheckedActivities.has(key);
@@ -9448,52 +9558,46 @@ void main() {
 
         function filterActivity() {
             const allActCbs = document.querySelectorAll('.act-filter');
-            const allResidentCbs = document.querySelectorAll('.act-pessoa-filter');
-            if (allActCbs.length === 0 && allResidentCbs.length === 0) {
+            if (allActCbs.length === 0) {
                 document.querySelectorAll('.cycle-badge.hidden-activity').forEach(b => b.classList.remove('hidden-activity'));
                 if (escalaViewMode === 'agenda') renderAgenda();
                 return;
             }
             const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.actKey);
-            const checkedResidents = Array.from(document.querySelectorAll('.act-pessoa-filter:checked')).map(cb => cb.dataset.pessoa);
             const allActivitiesChecked = allActCbs.length > 0 && checkedActivities.length === allActCbs.length;
-            const allResidentsChecked = allResidentCbs.length > 0 && checkedResidents.length === allResidentCbs.length;
             document.querySelectorAll('.cycle-badge').forEach(badge => {
-                const activityVisible = allActCbs.length === 0 || checkedActivities.includes(`${badge.dataset.slot}|${badge.dataset.activity}`);
-                const residentVisible = allResidentCbs.length === 0 || checkedResidents.includes(badge.dataset.pessoas);
-                badge.classList.toggle('hidden-activity', !(activityVisible && residentVisible));
+                const activityVisible = checkedActivities.includes(`${badge.dataset.slot}|${badge.dataset.activity}`);
+                badge.classList.toggle('hidden-activity', !activityVisible);
             });
             const allCb = document.getElementById('actFilterAll');
             if (allCb) {
                 allCb.checked = allActivitiesChecked;
                 allCb.parentElement.classList.toggle('active', allActivitiesChecked);
             }
-            const allResidentCb = document.getElementById('actResidentAll');
-            if (allResidentCb) {
-                allResidentCb.checked = allResidentsChecked;
-                allResidentCb.parentElement.classList.toggle('active', allResidentsChecked);
-            }
             allActCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
-            allResidentCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
+            document.querySelectorAll('.act-slot-all').forEach(slotCb => {
+                const slotCbs = Array.from(allActCbs).filter(cb => cb.dataset.actKey.startsWith(slotCb.dataset.slot + '|'));
+                const allSlotChecked = slotCbs.length > 0 && slotCbs.every(cb => cb.checked);
+                slotCb.checked = allSlotChecked;
+                slotCb.parentElement.classList.toggle('active', allSlotChecked);
+            });
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
-        // Chamado pelo onchange dos checkboxes individuais de atividade/residente.
+        // Chamado pelo onchange dos checkboxes individuais de atividade.
         function onActivityFilterChange() {
+            filterActivity();
+        }
+
+        function toggleSlotActivities(checkbox) {
+            document.querySelectorAll(`.act-filter[data-act-key^="${checkbox.dataset.slot}|"]`).forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
             filterActivity();
         }
 
         function toggleAllActivities(checkbox) {
             document.querySelectorAll('.act-filter').forEach(cb => {
-                cb.checked = checkbox.checked;
-                cb.parentElement.classList.toggle('active', checkbox.checked);
-            });
-            checkbox.parentElement.classList.toggle('active', checkbox.checked);
-            filterActivity();
-        }
-
-        function toggleAllActivityResidents(checkbox) {
-            document.querySelectorAll('.act-pessoa-filter').forEach(cb => {
                 cb.checked = checkbox.checked;
                 cb.parentElement.classList.toggle('active', checkbox.checked);
             });
