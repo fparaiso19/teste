@@ -424,7 +424,12 @@
         .turno-group { display: block; clear: both; }
         .turno-group:not(:has(.cycle-badge:not(.hidden-pessoa):not(.hidden-activity))) { display: none; }
         .turno-group .cycle-badge { display: block; width: fit-content; }
-        /* TURNO-ESTILO */
+        .turno-group { margin: 5px 0; padding: 4px 5px 3px; border-radius: 6px; border-left: 3px solid; }
+        .turno-am { background: rgba(249,168,37,0.08); border-left-color: #F9A825; }
+        .turno-pm { background: rgba(121,134,203,0.12); border-left-color: #7986CB; }
+        .turno-label { margin-bottom: 3px; font-size: 0.62em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+        .turno-am .turno-label { color: #F9A825; }
+        .turno-pm .turno-label { color: #9FA8DA; }
         .activity-filters {
             background: var(--bg-card);
             padding: 12px 15px;
