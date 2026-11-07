@@ -260,8 +260,10 @@ async function toggleResidentFilterWithActivity(page) {
     return targetIndex;
   });
 
+  // O painel do filtro por residente fica escondido (o usuário usa o botão
+  // "Residentes"); clica no checkbox original direto.
   const target = page.locator('.pessoa-filter').nth(targetIndex);
-  await target.click();
+  await target.evaluate(el => el.click());
 
   await page.waitForFunction(() => {
     const panel = document.getElementById('activityFilters');

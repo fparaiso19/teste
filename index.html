@@ -1763,7 +1763,9 @@ void main() {
 <li>Nenhum conflito encontrado!</li>        </ul>
     </div>
 
-    <div class="filters collapsible-panel" id="residentFilterPanel">
+    <!-- Escondido: o filtro por residente é usado pelo botão "Residentes".
+         Os checkboxes daqui continuam guardando o estado do filtro. -->
+    <div class="filters collapsible-panel" id="residentFilterPanel" hidden>
         <div class="collapsible-panel-header">
             <h3>Filtrar por Residente:</h3>
             <button type="button" class="collapse-toggle" aria-expanded="true" onclick="toggleCollapsiblePanel('residentFilterPanel')"><span class="collapse-toggle-icon" aria-hidden="true">-</span><span class="collapse-toggle-text">Minimizar</span></button>
@@ -1797,14 +1799,6 @@ void main() {
             <label class="filter-item">
                 <input type="checkbox" class="pessoa-filter" data-pessoa="VICTORIA" checked onchange="filterPessoa()"> VICTORIA
             </label>
-            </div>
-            <div style="margin-top: 12px; font-size: 0.85em; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary);">
-                <strong>Legenda R2:</strong>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#1565c0;border-radius:2px;display:inline-block;"></span> Aula</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block;"></span> Caso</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#e65100;border-radius:2px;display:inline-block;"></span> Artigo</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:var(--bg-tertiary);border:1px dotted var(--border-color);border-radius:2px;display:inline-block;"></span> Sem Reunião</span>
-                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:12px;height:12px;background:#00897b;border-radius:2px;display:inline-block;"></span> Atividade Ciclo</span>
             </div>
         </div>
     </div>
@@ -8777,6 +8771,11 @@ void main() {
             <button type="button" class="collapse-toggle" aria-expanded="false" onclick="toggleCollapsiblePanel('calendarLegendPanel')"><span class="collapse-toggle-icon" aria-hidden="true">+</span><span class="collapse-toggle-text">Expandir</span></button>
         </div>
         <div class="legenda-items collapsible-panel-content">
+            <div class="legenda-item"><div class="legenda-color" style="background: #1565c0;"></div> Aula R2</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: #c62828;"></div> Caso R2</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: #e65100;"></div> Artigo R2</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: var(--bg-tertiary); border: 1px dotted var(--border-color);"></div> Sem Reunião</div>
+            <div class="legenda-item"><div class="legenda-color" style="background: #00897b;"></div> Atividade Ciclo</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--weekend-bg); border: 1px solid var(--border-color);"></div> Fim de semana</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--feriado-bg); border: 1px solid var(--border-color);"></div> Feriado</div>
             <div class="legenda-item"><div class="legenda-color" style="background: var(--recesso-bg); border: 1px solid var(--border-color);"></div> Recesso</div>
@@ -9270,12 +9269,12 @@ void main() {
             if (text) text.textContent = collapsed ? 'Expandir' : 'Minimizar';
         }
 
-        // Botão flutuante "Residentes": aparece quando o filtro por residente
-        // sai da tela e abre um painel com chips que espelham os checkboxes
-        // originais (.pessoa-filter e #all), para filtrar sem voltar ao topo.
+        // Botão flutuante "Residentes": fica sempre visível na página Escala e
+        // abre um painel com chips que espelham os checkboxes do filtro por
+        // residente (.pessoa-filter e #all, num painel escondido).
         (function initResidentFab() {
-            const panel = document.getElementById('residentFilterPanel');
-            if (!panel) return;
+            const escalaPage = document.getElementById('page-escala');
+            if (!document.getElementById('residentFilterPanel')) return;
             const fab = document.createElement('button');
             fab.type = 'button';
             fab.className = 'res-fab';
@@ -9314,7 +9313,7 @@ void main() {
                     sync();
                     if (focus) pop.querySelector('input')?.focus();
                 } else if (hadFocusInside) {
-                    (fab.classList.contains('visible') ? fab : panel.querySelector('input'))?.focus();
+                    if (fab.classList.contains('visible')) fab.focus();
                 }
             }
             pop.addEventListener('change', e => {
@@ -9339,18 +9338,13 @@ void main() {
             let scheduled = false;
             function update() {
                 scheduled = false;
-                const onPage = panel.offsetParent !== null;
-                const offscreen = onPage && panel.getBoundingClientRect().bottom < 60;
-                // Com o painel aberto, o botão continua visível mesmo que a página
-                // encolha e o filtro original volte à tela (ex.: agenda sem ninguém).
-                const show = onPage && (offscreen || pop.classList.contains('open'));
+                const show = !!escalaPage && escalaPage.classList.contains('active');
                 fab.classList.toggle('visible', show);
                 if (!show && pop.classList.contains('open')) setOpen(false);
             }
             const schedule = () => { if (!scheduled) { scheduled = true; requestAnimationFrame(update); } };
-            window.addEventListener('scroll', schedule, {passive: true});
-            window.addEventListener('resize', schedule);
-            document.querySelectorAll('.page-tab').forEach(tab => tab.addEventListener('click', schedule));
+            // Mostra/esconde ao trocar de aba (Escala ↔ Aulas, Ciclos...).
+            if (escalaPage) new MutationObserver(schedule).observe(escalaPage, {attributes: true, attributeFilter: ['class']});
             sync();
             update();
         })();
