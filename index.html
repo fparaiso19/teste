@@ -420,6 +420,11 @@
             font-weight: 500;
         }
         .cycle-badge.badge-livre { background: #4CAF7A; font-weight: 600; }
+        /* Turnos dentro do dia (ver groupCycleBadgesByTurno). */
+        .turno-group { display: block; clear: both; }
+        .turno-group:not(:has(.cycle-badge:not(.hidden-pessoa):not(.hidden-activity))) { display: none; }
+        .turno-group .cycle-badge { display: block; width: fit-content; }
+        /* TURNO-ESTILO */
         .activity-filters {
             background: var(--bg-card);
             padding: 12px 15px;
@@ -10425,20 +10430,28 @@ void main() {
             if (typeof filterPessoa === 'function') filterPessoa();
         })();
 
-        // --- ORDENA OS BADGES DE ATIVIDADE DO CICLO DENTRO DE CADA DIA ---
-        // Primeiro todos os da manhã, depois os da tarde; em cada turno, por
-        // ordem alfabética de residente. Os demais badges do dia não se movem.
-        (function sortCycleBadgesInDays() {
-            const slotRank = slot => slot === 'PM' ? 1 : 0;
+        // --- AGRUPA OS BADGES DE ATIVIDADE DO CICLO POR TURNO DENTRO DE CADA DIA ---
+        // Cada dia ganha um bloco "Manhã" e um "Tarde" (nessa ordem); em cada
+        // turno, os badges ficam em ordem alfabética de residente. Os demais
+        // badges do dia não se movem. Um turno sem nada visível some (CSS).
+        (function groupCycleBadgesByTurno() {
+            const TURNOS = [['AM', 'Manhã', '☀️'], ['PM', 'Tarde', '🌙']];
             document.querySelectorAll('.day[data-date]').forEach(cell => {
                 const badges = Array.from(cell.querySelectorAll(':scope > .cycle-badge'));
-                if (badges.length < 2) return;
+                if (badges.length === 0) return;
                 const anchor = document.createComment('');
                 badges[0].before(anchor);
-                badges
-                    .sort((a, b) => slotRank(a.dataset.slot) - slotRank(b.dataset.slot)
-                        || a.dataset.pessoas.localeCompare(b.dataset.pessoas, 'pt'))
-                    .forEach(badge => anchor.before(badge));
+                TURNOS.forEach(([slot, label, icon]) => {
+                    const inSlot = badges
+                        .filter(b => (b.dataset.slot === 'PM' ? 'PM' : 'AM') === slot)
+                        .sort((a, b) => a.dataset.pessoas.localeCompare(b.dataset.pessoas, 'pt'));
+                    if (inSlot.length === 0) return;
+                    const group = document.createElement('div');
+                    group.className = `turno-group turno-${slot.toLowerCase()}`;
+                    group.innerHTML = `<div class="turno-label"><span aria-hidden="true">${icon}</span> ${label}</div>`;
+                    inSlot.forEach(badge => group.appendChild(badge));
+                    anchor.before(group);
+                });
                 anchor.remove();
             });
         })();
