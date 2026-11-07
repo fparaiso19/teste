@@ -428,8 +428,17 @@
         .turno-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         .turno-group { position: relative; }
         /* Faixa com box-shadow (não ocupa largura, não alarga a coluna). */
-        .turno-am .cycle-badge { box-shadow: inset 3px 0 0 #F9A825; }
-        .turno-pm .cycle-badge { box-shadow: inset 3px 0 0 #9FA8DA; }
+        /* O ☀️/🌙 fica dentro de uma aba colorida na ponta esquerda do badge. */
+        .turno-group .cycle-badge { padding-left: 0; }
+        .turno-icon {
+            display: inline-block;
+            margin: -2px 2px -2px 0;
+            padding: 2px 3px;
+            border-radius: 3px 0 0 3px;
+            line-height: inherit;
+        }
+        .turno-am .turno-icon { background: #9A6700; }
+        .turno-pm .turno-icon { background: #7E57C2; }
         /* Tracejado só quando a manhã tem algo visível acima da tarde. */
         .turno-am:has(.cycle-badge:not(.hidden-pessoa):not(.hidden-activity)) + .turno-pm {
             margin-top: 5px;
@@ -10463,7 +10472,19 @@ void main() {
                     const group = document.createElement('div');
                     group.className = `turno-group turno-${slot.toLowerCase()}`;
                     group.innerHTML = `<div class="turno-label"><span aria-hidden="true">${icon}</span> ${label}</div>`;
-                    inSlot.forEach(badge => group.appendChild(badge));
+                    inSlot.forEach(badge => {
+                        // Separa o emoji do turno numa <span> (o textContent continua igual).
+                        const text = badge.textContent;
+                        if (text.startsWith(icon)) {
+                            const iconEl = document.createElement('span');
+                            iconEl.className = 'turno-icon';
+                            iconEl.setAttribute('aria-hidden', 'true');
+                            iconEl.textContent = icon;
+                            badge.textContent = text.slice(icon.length);
+                            badge.prepend(iconEl);
+                        }
+                        group.appendChild(badge);
+                    });
                     anchor.before(group);
                 });
                 anchor.remove();
