@@ -424,11 +424,18 @@
         .turno-group { display: block; clear: both; }
         .turno-group:not(:has(.cycle-badge:not(.hidden-pessoa):not(.hidden-activity))) { display: none; }
         .turno-group .cycle-badge { display: block; width: fit-content; }
-        .turno-label { display: none; }
-        .turno-group .cycle-badge { border-left: 4px solid; }
-        .turno-am .cycle-badge { border-left-color: #F9A825; }
-        .turno-pm .cycle-badge { border-left-color: #9FA8DA; }
-        .turno-am + .turno-pm { margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border-color); }
+        /* Rótulo só para leitor de tela; o turno se vê pela faixa colorida. */
+        .turno-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .turno-group { position: relative; }
+        /* Faixa com box-shadow (não ocupa largura, não alarga a coluna). */
+        .turno-am .cycle-badge { box-shadow: inset 3px 0 0 #F9A825; }
+        .turno-pm .cycle-badge { box-shadow: inset 3px 0 0 #9FA8DA; }
+        /* Tracejado só quando a manhã tem algo visível acima da tarde. */
+        .turno-am:has(.cycle-badge:not(.hidden-pessoa):not(.hidden-activity)) + .turno-pm {
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px dashed rgba(255,255,255,0.22);
+        }
         .activity-filters {
             background: var(--bg-card);
             padding: 12px 15px;
@@ -9573,9 +9580,12 @@ void main() {
                 return;
             }
             const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.actKey);
+            const uncheckedActivities = new Set(Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.actKey));
             const allActivitiesChecked = allActCbs.length > 0 && checkedActivities.length === allActCbs.length;
             document.querySelectorAll('.cycle-badge').forEach(badge => {
-                const activityVisible = checkedActivities.includes(`${badge.dataset.slot}|${badge.dataset.activity}`);
+                // Só esconde o que está desmarcado no painel; atividades que só
+                // existem em outros meses continuam visíveis lá.
+                const activityVisible = !uncheckedActivities.has(`${badge.dataset.slot}|${badge.dataset.activity}`);
                 badge.classList.toggle('hidden-activity', !activityVisible);
             });
             const allCb = document.getElementById('actFilterAll');
