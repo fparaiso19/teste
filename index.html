@@ -244,6 +244,11 @@
             box-shadow: 0 6px 24px rgba(0,0,0,0.45);
         }
         .res-fab.visible { display: inline-flex; }
+        /* Com o modal de exportar aberto, o botão sai da frente. */
+        body:has(#icsModal.active) .res-fab,
+        body:has(#icsModal.active) .res-pop { display: none !important; }
+        /* Espaço no fim da Escala para o botão não cobrir o último painel. */
+        #page-escala { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
         .res-fab:focus-visible { outline: 2px solid #30B0D0; outline-offset: 3px; }
         .res-pop {
             position: fixed;
@@ -9530,11 +9535,13 @@ void main() {
             const categoryRank = act => act.startsWith('Amb.') ? 0 : act.startsWith('Cir.') ? 1 : act === 'PO' ? 2 : 3;
             const container = document.getElementById('activityFilterGroups');
             let html = '';
-            [['AM', '☀️ Manhã'], ['PM', '🌙 Tarde']].forEach(([slot, label]) => {
+            [['AM', '☀️ Manhã', 'Todas da manhã'], ['PM', '🌙 Tarde', 'Todas da tarde']].forEach(([slot, label, allLabel]) => {
                 const acts = Array.from(activitiesBySlot[slot])
                     .sort((x, y) => categoryRank(x) - categoryRank(y) || x.localeCompare(y));
                 if (acts.length === 0) return;
                 html += `<span class="activity-filter-group-label">${label}:</span><div class="activity-filter-group">`;
+                // Marca/desmarca todas as atividades deste turno; o estado é sincronizado em filterActivity().
+                html += `<label class="activity-filter-item"><input type="checkbox" class="act-slot-all" data-slot="${slot}" onchange="toggleSlotActivities(this)"> <strong>${allLabel}</strong></label>`;
                 acts.forEach(act => {
                     const key = `${slot}|${act}`;
                     const isChecked = !previouslyUncheckedActivities.has(key);
@@ -9568,11 +9575,24 @@ void main() {
                 allCb.parentElement.classList.toggle('active', allActivitiesChecked);
             }
             allActCbs.forEach(cb => cb.parentElement.classList.toggle('active', cb.checked));
+            document.querySelectorAll('.act-slot-all').forEach(slotCb => {
+                const slotCbs = Array.from(allActCbs).filter(cb => cb.dataset.actKey.startsWith(slotCb.dataset.slot + '|'));
+                const allSlotChecked = slotCbs.length > 0 && slotCbs.every(cb => cb.checked);
+                slotCb.checked = allSlotChecked;
+                slotCb.parentElement.classList.toggle('active', allSlotChecked);
+            });
             if (escalaViewMode === 'agenda') renderAgenda();
         }
 
         // Chamado pelo onchange dos checkboxes individuais de atividade.
         function onActivityFilterChange() {
+            filterActivity();
+        }
+
+        function toggleSlotActivities(checkbox) {
+            document.querySelectorAll(`.act-filter[data-act-key^="${checkbox.dataset.slot}|"]`).forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
             filterActivity();
         }
 
