@@ -9497,11 +9497,6 @@ void main() {
 
         showMonth(findCurrentMonth());
         updateEscalaViewToggle(escalaViewMode);
-        // No celular o calendário (largura fixa) não cabe inteiro: abre em lista.
-        // O botão ▦ continua levando ao calendário.
-        if (window.matchMedia && window.matchMedia('(max-width: 600px)').matches) {
-            try { setEscalaView('agenda'); } catch (e) { setEscalaView('calendar'); }
-        }
 
         function toggleAll(checkbox) {
             const checked = checkbox.checked;
