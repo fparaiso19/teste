@@ -333,9 +333,11 @@
         .calendar .cycle-badge { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
         /* Cartões de fora a fora no dia; a letra do ciclo (data-ciclo) fica à
            direita. Vai por CSS para não entrar no texto do badge (agenda/exportação). */
-        .calendar .plantao, .calendar .ps-badge { display: block; }
+        .calendar .plantao { display: block; }
+        .calendar .ps-badge { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; }
         .calendar .turno-group .cycle-badge { display: flex; width: auto; align-items: baseline; justify-content: space-between; gap: 5px; }
-        .calendar .cycle-badge[data-ciclo]::after {
+        .calendar .cycle-badge[data-ciclo]::after,
+        .calendar .ps-badge[data-ciclo]::after {
             content: attr(data-ciclo);
             flex: none;
             min-width: 1.45em;
@@ -10224,6 +10226,8 @@ void main() {
                         const badge = document.createElement('span');
                         badge.className = 'ps-badge';
                         badge.dataset.pessoas = nameUp;
+                        badge.dataset.ciclo = cycle;
+                        badge.title = 'Ciclo ' + cycle;
                         badge.textContent = `${nameUp} (PS ${hours})`;
                         cell.appendChild(badge);
                         // Update data-pessoas for filtering
