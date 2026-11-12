@@ -73,6 +73,7 @@
             font-size: 1em;
             letter-spacing: 0.02em;
         }
+        .calendar .ferias[data-ciclo]::after { background: rgba(255,255,255,0.08); }
         .header::after {
             content: '';
             display: block;
@@ -310,6 +311,45 @@
             letter-spacing: 0.02em;
         }
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-color); }
+        /* Tamanho único: as 7 colunas têm sempre a mesma largura (--cal-col),
+           não importa a tela nem o conteúdo do dia. Em tela larga o calendário
+           fica centralizado; em tela estreita rola dentro do próprio cartão
+           (a página não ganha rolagem lateral). */
+        :root { --cal-col: 245px; }
+        :root { --cal-largura: calc(7 * var(--cal-col) + 6px + 2px); }
+        .month-container { max-width: var(--cal-largura); margin-left: auto; margin-right: auto; }
+        /* Os demais painéis da Escala acompanham a largura do calendário. */
+        #page-escala > .activity-filters,
+        #page-escala > .agenda-container,
+        #page-escala > .legenda,
+        #page-escala > .year-selector,
+        #page-escala > .tabela-container,
+        #page-escala > .ac-ferias-card,
+        #page-escala > .problemas-container,
+        #page-escala > .folga-toggle { max-width: var(--cal-largura); margin-left: auto; margin-right: auto; }
+        .calendar { grid-template-columns: repeat(7, var(--cal-col)); width: max-content; min-width: 0; }
+        .calendar .day { min-width: 0; padding-left: 6px; padding-right: 6px; }
+        .month-container > .month-header { position: sticky; left: 0; }
+        .calendar .cal-ac-badge { white-space: normal; overflow-wrap: anywhere; }
+        .calendar .cycle-badge { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+        /* Cartões de fora a fora no dia; a letra do ciclo (data-ciclo) fica à
+           direita. Vai por CSS para não entrar no texto do badge (agenda/exportação). */
+        .calendar .plantao { display: block; }
+        .calendar .ps-badge { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; }
+        .calendar .turno-group .cycle-badge { display: flex; width: auto; align-items: baseline; justify-content: space-between; gap: 5px; }
+        .calendar .ferias[data-ciclo] { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; }
+        .calendar .cycle-badge[data-ciclo]::after,
+        .calendar .ps-badge[data-ciclo]::after,
+        .calendar .ferias[data-ciclo]::after {
+            content: attr(data-ciclo);
+            flex: none;
+            min-width: 1.45em;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.28);
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
         .weekday-header {
             background: var(--bg-secondary);
             padding: 10px;
@@ -10189,6 +10229,8 @@ void main() {
                         const badge = document.createElement('span');
                         badge.className = 'ps-badge';
                         badge.dataset.pessoas = nameUp;
+                        badge.dataset.ciclo = cycle;
+                        badge.title = 'Ciclo ' + cycle;
                         badge.textContent = `${nameUp} (PS ${hours})`;
                         cell.appendChild(badge);
                         // Update data-pessoas for filtering
@@ -10317,6 +10359,8 @@ void main() {
                             badge.dataset.pessoas = nameUp;
                             badge.dataset.activity = a.act;
                             badge.dataset.slot = a.slot;
+                            badge.dataset.ciclo = cycle;
+                            badge.title = 'Ciclo ' + cycle;
                             const emoji = a.slot === 'AM' ? '☀️' : '🌙';
                             badge.textContent = `${emoji} ${nameUp} (${a.act})`;
                             cell.appendChild(badge);
@@ -10327,6 +10371,20 @@ void main() {
                         cell.dataset.pessoas = Array.from(ps).join(',');
                     }
                 });
+            });
+            // Linha "Férias: NOME" também ganha a letra do ciclo do período.
+            CYCLES_AH.forEach((period, pIdx) => {
+                const pStart = pd2(period[0]), pEnd = pd2(period[1]);
+                for (let d = new Date(pStart); d <= pEnd; d.setDate(d.getDate() + 1)) {
+                    const cell = document.querySelector(`.day[data-date="${ds2(d)}"]`);
+                    if (!cell) continue;
+                    cell.querySelectorAll('.ferias[data-pessoas]').forEach(f => {
+                        const r = cResidents.find(x => x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase() === f.dataset.pessoas);
+                        if (!r) return;
+                        f.dataset.ciclo = cCycle(r, pIdx);
+                        f.title = 'Ciclo ' + f.dataset.ciclo;
+                    });
+                }
             });
             if (typeof filterPessoa === 'function') filterPessoa();
         })();
@@ -10431,6 +10489,8 @@ void main() {
                         badge.dataset.pessoas = nameUp;
                         badge.dataset.activity = a.act;
                         badge.dataset.slot = a.slot;
+                        badge.dataset.ciclo = mc;
+                        badge.title = 'Miniciclo ' + mc;
                         const emoji = a.slot === 'AM' ? '☀️' : '🌙';
                         badge.textContent = `${emoji} ${nameUp} (${a.act})`;
                         cell.appendChild(badge);
@@ -10441,6 +10501,17 @@ void main() {
                     cell.dataset.pessoas = Array.from(ps).join(',');
                 }
             });
+            for (let d = new Date(MINI_LOOP_START); d <= MINI_END; d.setDate(d.getDate() + 1)) {
+                const cell = document.querySelector(`.day[data-date="${ds2(d)}"]`);
+                if (!cell) continue;
+                const dd = new Date(d);
+                cell.querySelectorAll('.ferias[data-pessoas]').forEach(f => {
+                    const r = MINI_RESIDENTS.find(x => x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase() === f.dataset.pessoas);
+                    if (!r) return;
+                    f.dataset.ciclo = miniPos(r, dd);
+                    f.title = 'Miniciclo ' + f.dataset.ciclo;
+                });
+            }
             if (typeof filterPessoa === 'function') filterPessoa();
         })();
 
