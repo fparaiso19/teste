@@ -1642,7 +1642,11 @@ void main() {
         const w = window.innerWidth;
         const h = window.innerHeight;
         renderer.setSize(w, h);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+        // O fundo é só um degradê suave: desenhar em meia resolução (o navegador
+        // amplia) fica igual à vista e custa ~9x menos para a placa de vídeo do
+        // que 1,5x. Em resolução cheia ele travava cliques e rolagem em
+        // computadores/celulares mais fracos.
+        renderer.setPixelRatio(0.5);
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
         renderer.domElement.style.display = 'block';
@@ -9093,6 +9097,9 @@ void main() {
     </div><!-- end page-changelog -->
     <script>
         let escalaViewMode = 'calendar';
+        // Versão do filtro por residente/atividade (ver aplicarFiltrosNoMes).
+        let filtrosVersao = 0;
+        const filtrosAplicados = new WeakMap(); // mês -> versão aplicada
         let currentMonthIndex = 0;
         const months = document.querySelectorAll('.month-container');
         const monthSelect = document.getElementById('monthSelect');
@@ -9123,7 +9130,8 @@ void main() {
             document.getElementById('nextBtn').disabled = index === months.length - 1;
             if (document.getElementById('activityFilters').classList.contains('visible')) {
                 updateActivityFilterPanel();
-                filterActivity();
+            } else {
+                aplicarFiltrosNoMesVisivel();
             }
         }
 
@@ -9240,6 +9248,8 @@ void main() {
                 return;
             }
 
+            // A Lista lê todos os meses: garante que todos estão filtrados.
+            aplicarFiltrosEmTodosOsMeses();
             const includeFolgas = !!document.getElementById('showFolgas')?.checked;
             const monthBuckets = new Map();
             const kindPriority = {plantao: 0, ps: 1, evento: 2, ciclo: 3, aula: 4, caso: 5, artigo: 6, skip: 7, ferias: 8, folga: 9};
@@ -9545,14 +9555,8 @@ void main() {
                 cb.parentElement.classList.toggle('active', cb.checked);
             });
 
-            document.querySelectorAll('.day[data-pessoas]').forEach(day => {
-                const pessoas = day.dataset.pessoas.split(',').filter(p => p);
-                const visible = pessoas.length === 0 || pessoas.some(p => selectedPessoas.includes(p));
-                day.querySelectorAll('.plantao, .evento, .folga, .ferias, .cal-ac-badge, .ps-badge, .cycle-badge').forEach(el => {
-                    const elPessoas = el.dataset.pessoas ? el.dataset.pessoas.split(',') : [];
-                    el.classList.toggle('hidden-pessoa', elPessoas.length > 0 && !elPessoas.some(p => selectedPessoas.includes(p)));
-                });
-            });
+            // Não varre mais os 36 meses aqui (era o que travava o filtro):
+            // filterActivity() abaixo marca o filtro como mudado e aplica só no mês visível.
 
             const allCheckbox = document.getElementById('all');
             const allChecked = document.querySelectorAll('.pessoa-filter').length ===
@@ -9614,20 +9618,15 @@ void main() {
 
         function filterActivity() {
             const allActCbs = document.querySelectorAll('.act-filter');
+            // Filtro mudou: os outros meses ficam pendentes e são filtrados ao abrir.
+            filtrosVersao++;
+            aplicarFiltrosNoMesVisivel();
             if (allActCbs.length === 0) {
-                document.querySelectorAll('.cycle-badge.hidden-activity').forEach(b => b.classList.remove('hidden-activity'));
                 if (escalaViewMode === 'agenda') renderAgenda();
                 return;
             }
             const checkedActivities = Array.from(document.querySelectorAll('.act-filter:checked')).map(cb => cb.dataset.actKey);
-            const uncheckedActivities = new Set(Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.actKey));
             const allActivitiesChecked = allActCbs.length > 0 && checkedActivities.length === allActCbs.length;
-            document.querySelectorAll('.cycle-badge').forEach(badge => {
-                // Só esconde o que está desmarcado no painel; atividades que só
-                // existem em outros meses continuam visíveis lá.
-                const activityVisible = !uncheckedActivities.has(`${badge.dataset.slot}|${badge.dataset.activity}`);
-                badge.classList.toggle('hidden-activity', !activityVisible);
-            });
             const allCb = document.getElementById('actFilterAll');
             if (allCb) {
                 allCb.checked = allActivitiesChecked;
@@ -9641,6 +9640,35 @@ void main() {
                 slotCb.parentElement.classList.toggle('active', allSlotChecked);
             });
             if (escalaViewMode === 'agenda') renderAgenda();
+        }
+
+        // Filtros por residente e por atividade aplicados mês a mês.
+        // Antes, cada clique varria os 36 meses (~6 mil badges) e travava a
+        // página. Agora só o mês visível é filtrado na hora; os demais guardam
+        // a versão do filtro que receberam e são atualizados quando abertos
+        // (showMonth) ou quando a Lista precisa de todos (renderAgenda).
+        function aplicarFiltrosNoMes(mes) {
+            if (!mes || filtrosAplicados.get(mes) === filtrosVersao) return;
+            const selecionados = new Set(Array.from(document.querySelectorAll('.pessoa-filter:checked')).map(cb => cb.dataset.pessoa));
+            // Só esconde o que está desmarcado no painel; atividades que só
+            // existem em outros meses continuam visíveis lá.
+            const desmarcadas = new Set(Array.from(document.querySelectorAll('.act-filter:not(:checked)')).map(cb => cb.dataset.actKey));
+            mes.querySelectorAll('.day[data-pessoas]').forEach(day => {
+                day.querySelectorAll('.plantao, .evento, .folga, .ferias, .cal-ac-badge, .ps-badge, .cycle-badge').forEach(el => {
+                    const elPessoas = el.dataset.pessoas ? el.dataset.pessoas.split(',') : [];
+                    el.classList.toggle('hidden-pessoa', elPessoas.length > 0 && !elPessoas.some(p => selecionados.has(p)));
+                    if (el.classList.contains('cycle-badge')) {
+                        el.classList.toggle('hidden-activity', desmarcadas.has(`${el.dataset.slot}|${el.dataset.activity}`));
+                    }
+                });
+            });
+            filtrosAplicados.set(mes, filtrosVersao);
+        }
+        function aplicarFiltrosNoMesVisivel() {
+            aplicarFiltrosNoMes(document.querySelector('.month-container.active'));
+        }
+        function aplicarFiltrosEmTodosOsMeses() {
+            document.querySelectorAll('.month-container').forEach(aplicarFiltrosNoMes);
         }
 
         // Chamado pelo onchange dos checkboxes individuais de atividade.
