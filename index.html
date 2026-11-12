@@ -315,7 +315,17 @@
            fica centralizado; em tela estreita rola dentro do próprio cartão
            (a página não ganha rolagem lateral). */
         :root { --cal-col: 170px; }
-        .month-container { max-width: calc(7 * var(--cal-col) + 6px + 2px); margin-left: auto; margin-right: auto; }
+        :root { --cal-largura: calc(7 * var(--cal-col) + 6px + 2px); }
+        .month-container { max-width: var(--cal-largura); margin-left: auto; margin-right: auto; }
+        /* Os demais painéis da Escala acompanham a largura do calendário. */
+        #page-escala > .activity-filters,
+        #page-escala > .agenda-container,
+        #page-escala > .legenda,
+        #page-escala > .year-selector,
+        #page-escala > .tabela-container,
+        #page-escala > .ac-ferias-card,
+        #page-escala > .problemas-container,
+        #page-escala > .folga-toggle { max-width: var(--cal-largura); margin-left: auto; margin-right: auto; }
         .calendar { grid-template-columns: repeat(7, var(--cal-col)); width: max-content; min-width: 0; }
         .calendar .day { min-width: 0; }
         .month-container > .month-header { position: sticky; left: 0; }
