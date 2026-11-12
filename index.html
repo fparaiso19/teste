@@ -310,6 +310,17 @@
             letter-spacing: 0.02em;
         }
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-color); }
+        /* Tamanho único: as 7 colunas têm sempre a mesma largura (--cal-col),
+           não importa a tela nem o conteúdo do dia. Em tela larga o calendário
+           fica centralizado; em tela estreita rola dentro do próprio cartão
+           (a página não ganha rolagem lateral). */
+        :root { --cal-col: 170px; }
+        .month-container { max-width: calc(7 * var(--cal-col) + 6px + 2px); margin-left: auto; margin-right: auto; }
+        .calendar { grid-template-columns: repeat(7, var(--cal-col)); width: max-content; min-width: 0; }
+        .calendar .day { min-width: 0; }
+        .month-container > .month-header { position: sticky; left: 0; }
+        .calendar .cal-ac-badge { white-space: normal; overflow-wrap: anywhere; }
+        .calendar .cycle-badge { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
         .weekday-header {
             background: var(--bg-secondary);
             padding: 10px;
