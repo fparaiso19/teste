@@ -73,6 +73,7 @@
             font-size: 1em;
             letter-spacing: 0.02em;
         }
+        .calendar .ferias[data-ciclo]::after { background: rgba(255,255,255,0.08); }
         .header::after {
             content: '';
             display: block;
@@ -336,8 +337,10 @@
         .calendar .plantao { display: block; }
         .calendar .ps-badge { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; }
         .calendar .turno-group .cycle-badge { display: flex; width: auto; align-items: baseline; justify-content: space-between; gap: 5px; }
+        .calendar .ferias[data-ciclo] { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; }
         .calendar .cycle-badge[data-ciclo]::after,
-        .calendar .ps-badge[data-ciclo]::after {
+        .calendar .ps-badge[data-ciclo]::after,
+        .calendar .ferias[data-ciclo]::after {
             content: attr(data-ciclo);
             flex: none;
             min-width: 1.45em;
@@ -10369,6 +10372,20 @@ void main() {
                     }
                 });
             });
+            // Linha "Férias: NOME" também ganha a letra do ciclo do período.
+            CYCLES_AH.forEach((period, pIdx) => {
+                const pStart = pd2(period[0]), pEnd = pd2(period[1]);
+                for (let d = new Date(pStart); d <= pEnd; d.setDate(d.getDate() + 1)) {
+                    const cell = document.querySelector(`.day[data-date="${ds2(d)}"]`);
+                    if (!cell) continue;
+                    cell.querySelectorAll('.ferias[data-pessoas]').forEach(f => {
+                        const r = cResidents.find(x => x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase() === f.dataset.pessoas);
+                        if (!r) return;
+                        f.dataset.ciclo = cCycle(r, pIdx);
+                        f.title = 'Ciclo ' + f.dataset.ciclo;
+                    });
+                }
+            });
             if (typeof filterPessoa === 'function') filterPessoa();
         })();
 
@@ -10484,6 +10501,17 @@ void main() {
                     cell.dataset.pessoas = Array.from(ps).join(',');
                 }
             });
+            for (let d = new Date(MINI_LOOP_START); d <= MINI_END; d.setDate(d.getDate() + 1)) {
+                const cell = document.querySelector(`.day[data-date="${ds2(d)}"]`);
+                if (!cell) continue;
+                const dd = new Date(d);
+                cell.querySelectorAll('.ferias[data-pessoas]').forEach(f => {
+                    const r = MINI_RESIDENTS.find(x => x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase() === f.dataset.pessoas);
+                    if (!r) return;
+                    f.dataset.ciclo = miniPos(r, dd);
+                    f.title = 'Miniciclo ' + f.dataset.ciclo;
+                });
+            }
             if (typeof filterPessoa === 'function') filterPessoa();
         })();
 
