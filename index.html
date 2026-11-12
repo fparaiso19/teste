@@ -1643,8 +1643,8 @@ void main() {
         const h = window.innerHeight;
         renderer.setSize(w, h);
         // O fundo é só um degradê suave: desenhar em meia resolução (o navegador
-        // amplia) fica igual à vista e custa ~9x menos para a placa de vídeo do
-        // que 1,5x. Em resolução cheia ele travava cliques e rolagem em
+        // amplia) fica igual à vista e custa de 4x a 9x menos para a placa de
+        // vídeo. Em resolução cheia ele travava cliques e rolagem em
         // computadores/celulares mais fracos.
         renderer.setPixelRatio(0.5);
         renderer.domElement.style.width = '100%';
