@@ -330,6 +330,63 @@
         .calendar { grid-template-columns: repeat(7, var(--cal-col)); width: max-content; min-width: 0; }
         .calendar .day { min-width: 0; padding-left: 6px; padding-right: 6px; }
         .month-container > .month-header { position: sticky; left: 0; }
+        /* Barra de rolagem lateral fixa no rodapé da tela: aparece quando o mês
+           não cabe na largura e o calendário está na tela. Setas andam um dia
+           (uma coluna); a faixa mostra que parte do mês está visível. */
+        .cal-hbar {
+            position: fixed;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            z-index: 49;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 4px;
+            border-radius: 999px;
+            border: 1px solid rgba(48,176,208,0.45);
+            background: rgba(5,10,15,0.92);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+        }
+        .cal-hbar.visible { display: flex; }
+        .cal-hbar-btn {
+            flex: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border-light);
+            background: var(--filter-bg);
+            color: #30B0D0;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .cal-hbar-btn:disabled { opacity: 0.3; cursor: default; }
+        .cal-hbar-btn:focus-visible { outline: 2px solid #30B0D0; outline-offset: 2px; }
+        .cal-hbar-meio { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .cal-hbar-dias { display: flex; gap: 2px; }
+        .cal-hbar-dias span {
+            flex: 1;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-radius: 4px;
+            padding: 1px 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cal-hbar-dias span.na-tela { color: #05101a; background: #30B0D0; }
+        .cal-hbar-trilho { position: relative; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.12); cursor: pointer; touch-action: none; }
+        .cal-hbar-cursor { position: absolute; top: -3px; bottom: -3px; border-radius: 999px; background: rgba(48,176,208,0.75); cursor: grab; }
+        .cal-hbar-cursor:active { cursor: grabbing; }
+        /* Arrastar o calendário com o mouse (no celular o dedo já arrasta). */
+        .month-container.pode-arrastar { cursor: grab; }
+        .month-container.arrastando { cursor: grabbing; user-select: none; }
+        .month-container.arrastando * { cursor: grabbing !important; }
+        @media print { .cal-hbar { display: none !important; } }
         .calendar .cal-ac-badge { white-space: normal; overflow-wrap: anywhere; }
         .calendar .cycle-badge { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
         /* Cartões de fora a fora no dia; a letra do ciclo (data-ciclo) fica à
@@ -10832,6 +10889,187 @@ void main() {
             });
 
             container.innerHTML = html;
+        })();
+    </script>
+    <script>
+        // Barra de rolagem lateral fixa no rodapé da tela (Escala, modo
+        // calendário). Com colunas de largura fixa, o mês pode não caber na
+        // tela e a barra nativa fica lá no fim do cartão; esta barra fica
+        // sempre à vista enquanto o mês está na tela. Também deixa arrastar
+        // o calendário com o mouse.
+        (function initBarraLateral() {
+            const page = document.getElementById('page-escala');
+            if (!page) return;
+            const NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const bar = document.createElement('div');
+            bar.className = 'cal-hbar';
+            bar.setAttribute('role', 'group');
+            bar.setAttribute('aria-label', 'Rolar o calendário para os lados');
+            bar.innerHTML =
+                '<button type="button" class="cal-hbar-btn" data-dir="-1" aria-label="Rolar para a esquerda">‹</button>' +
+                '<div class="cal-hbar-meio"><div class="cal-hbar-dias">' +
+                NOMES.map((n, i) => `<span data-col="${i}" data-nome="${n}">${n}</span>`).join('') +
+                '</div><div class="cal-hbar-trilho"><div class="cal-hbar-cursor"></div></div></div>' +
+                '<button type="button" class="cal-hbar-btn" data-dir="1" aria-label="Rolar para a direita">›</button>';
+            document.body.appendChild(bar);
+            const trilho = bar.querySelector('.cal-hbar-trilho');
+            const cursor = bar.querySelector('.cal-hbar-cursor');
+            const dias = Array.from(bar.querySelectorAll('.cal-hbar-dias span'));
+            const [btnEsq, btnDir] = bar.querySelectorAll('.cal-hbar-btn');
+            const mesAtivo = () => document.querySelector('#page-escala .month-container.active');
+
+            // Posição (em px, dentro da área rolável) de cada uma das 7 colunas.
+            function colunas(m) {
+                const base = m.getBoundingClientRect().left + m.clientLeft - m.scrollLeft;
+                return Array.from(m.querySelectorAll('.calendar > .weekday-header')).slice(0, 7).map(h => {
+                    const r = h.getBoundingClientRect();
+                    return { ini: r.left - base, fim: r.right - base };
+                });
+            }
+            function rolarPara(m, x) {
+                m.scrollTo({ left: Math.max(0, Math.min(x, m.scrollWidth - m.clientWidth)), behavior: 'smooth' });
+            }
+
+            let agendado = false;
+            function agendar() {
+                if (agendado) return;
+                agendado = true;
+                requestAnimationFrame(() => { agendado = false; atualizar(); });
+            }
+            function atualizar() {
+                const m = mesAtivo();
+                let mostrar = false;
+                if (m && page.offsetParent !== null && !page.classList.contains('agenda-mode')) {
+                    const sobra = m.scrollWidth - m.clientWidth;
+                    m.classList.toggle('pode-arrastar', sobra > 1);
+                    const r = m.getBoundingClientRect();
+                    mostrar = sobra > 1 && r.height > 0 && r.top < innerHeight - 90 && r.bottom > 150;
+                    if (mostrar) {
+                        // Ocupa a largura do mês, sem passar por baixo do botão Residentes.
+                        let esq = Math.max(16, r.left);
+                        let dir = Math.min(r.right, innerWidth - 16);
+                        const fab = document.querySelector('.res-fab.visible');
+                        if (fab) {
+                            const fr = fab.getBoundingClientRect();
+                            if (fr.left < dir + 10) dir = fr.left - 10;
+                        }
+                        const largura = Math.min(560, dir - esq);
+                        bar.style.left = (esq + (dir - esq - largura) / 2) + 'px';
+                        bar.style.width = largura + 'px';
+                        bar.classList.toggle('compacta', largura < 330);
+                        const sl = m.scrollLeft;
+                        btnEsq.disabled = sl <= 1;
+                        btnDir.disabled = sl >= sobra - 1;
+                        const cols = colunas(m);
+                        dias.forEach((d, i) => {
+                            const c = cols[i];
+                            const visivel = c ? Math.min(c.fim, sl + m.clientWidth) - Math.max(c.ini, sl) : 0;
+                            d.classList.toggle('na-tela', !!c && visivel >= (c.fim - c.ini) / 2);
+                            d.textContent = largura < 330 ? d.dataset.nome.charAt(0) : d.dataset.nome;
+                        });
+                        const tw = trilho.clientWidth;
+                        const cw = Math.max(24, tw * m.clientWidth / m.scrollWidth);
+                        cursor.style.width = cw + 'px';
+                        cursor.style.left = ((sl / sobra) * (tw - cw)) + 'px';
+                    }
+                }
+                bar.classList.toggle('visible', mostrar);
+            }
+
+            // Setas: andam uma coluna (um dia da semana) por clique.
+            bar.addEventListener('click', e => {
+                const m = mesAtivo();
+                if (!m) return;
+                const btn = e.target.closest('.cal-hbar-btn');
+                const dia = e.target.closest('.cal-hbar-dias span');
+                const cols = colunas(m);
+                const sl = m.scrollLeft;
+                if (btn) {
+                    if (btn.dataset.dir === '1') {
+                        const prox = cols.find(c => c.ini > sl + 2);
+                        if (prox) rolarPara(m, prox.ini);
+                    } else {
+                        const ant = cols.filter(c => c.ini < sl - 2).pop();
+                        rolarPara(m, ant ? ant.ini : 0);
+                    }
+                } else if (dia) {
+                    // Toque num dia: traz a coluna inteira para a tela.
+                    const c = cols[+dia.dataset.col];
+                    if (!c) return;
+                    if (c.ini < sl) rolarPara(m, c.ini);
+                    else if (c.fim > sl + m.clientWidth) rolarPara(m, c.fim - m.clientWidth);
+                }
+            });
+
+            // Trilho: arrastar o cursor ou tocar num ponto do trilho.
+            let puxando = null;
+            trilho.addEventListener('pointerdown', e => {
+                const m = mesAtivo();
+                if (!m) return;
+                const tw = trilho.clientWidth, cw = cursor.offsetWidth;
+                const sobra = m.scrollWidth - m.clientWidth;
+                if (e.target !== cursor) {
+                    const x = e.clientX - trilho.getBoundingClientRect().left - cw / 2;
+                    m.scrollLeft = Math.max(0, Math.min(1, x / (tw - cw))) * sobra;
+                }
+                puxando = { m, x: e.clientX, sl: m.scrollLeft, fator: sobra / Math.max(1, tw - cw) };
+                trilho.setPointerCapture(e.pointerId);
+                e.preventDefault();
+            });
+            trilho.addEventListener('pointermove', e => {
+                if (!puxando) return;
+                puxando.m.scrollLeft = puxando.sl + (e.clientX - puxando.x) * puxando.fator;
+            });
+            const soltar = () => { puxando = null; };
+            trilho.addEventListener('pointerup', soltar);
+            trilho.addEventListener('pointercancel', soltar);
+
+            // Arrastar o calendário com o mouse (no celular o dedo já rola).
+            let arrasto = null, arrastou = false;
+            document.addEventListener('pointerdown', e => {
+                arrastou = false;
+                if (e.pointerType !== 'mouse' || e.button !== 0) return;
+                const m = e.target.closest('#page-escala .month-container.active.pode-arrastar');
+                if (!m || e.target.closest('button, a, input, select, textarea, label')) return;
+                arrasto = { m, x: e.clientX, sl: m.scrollLeft };
+            });
+            document.addEventListener('pointermove', e => {
+                if (!arrasto) return;
+                const dx = e.clientX - arrasto.x;
+                if (!arrastou && Math.abs(dx) < 6) return;
+                if (!arrastou) {
+                    arrastou = true;
+                    arrasto.m.classList.add('arrastando');
+                    const sel = window.getSelection();
+                    if (sel) sel.removeAllRanges();
+                }
+                arrasto.m.scrollLeft = arrasto.sl - dx;
+            });
+            const fimArrasto = () => {
+                if (!arrasto) return;
+                arrasto.m.classList.remove('arrastando');
+                arrasto = null;
+            };
+            document.addEventListener('pointerup', fimArrasto);
+            document.addEventListener('pointercancel', fimArrasto);
+            // Depois de arrastar, o clique que vem junto não abre nada.
+            document.addEventListener('click', e => {
+                if (!arrastou) return;
+                arrastou = false;
+                e.stopPropagation();
+                e.preventDefault();
+            }, true);
+
+            window.addEventListener('scroll', agendar, { passive: true });
+            window.addEventListener('resize', agendar);
+            document.addEventListener('scroll', agendar, { capture: true, passive: true });
+            // Troca de mês, de aba ou de modo (lista/calendário) muda classes.
+            const obs = new MutationObserver(agendar);
+            document.querySelectorAll('.page-content, #page-escala .month-container').forEach(el =>
+                obs.observe(el, { attributes: true, attributeFilter: ['class'] }));
+            const fab = document.querySelector('.res-fab');
+            if (fab) obs.observe(fab, { attributes: true, attributeFilter: ['class'] });
+            atualizar();
         })();
     </script>
 </body>
