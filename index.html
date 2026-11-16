@@ -2,7 +2,17 @@
 <html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- iPhone: cor da barra do Safari, ícone e modo "app" ao adicionar à
+         Tela de Início (abre sem a barra de endereço). -->
+    <meta name="theme-color" content="#050A0F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Escala">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
     <meta name="robots" content="noindex,nofollow">
     <title>Escala Residência 2025-2027</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1442,6 +1452,71 @@
             z-index: 1;
         }
 </style>
+    <style>
+        /* ===== Ajustes para iPhone / celular =====
+           Tudo aqui vale só em telas estreitas (até 760px) ou só em
+           aparelhos de toque, para não mudar nada no computador. */
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        button, select, label, a, .page-tab, .cal-hbar-btn {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* toque duplo não dá zoom em botões */
+        }
+        /* Aberto pela Tela de Início (modo app): a barra de abas não fica
+           por baixo do relógio/notch, e no celular deitado o conteúdo não
+           fica por baixo da câmera. */
+        .page-tabs { padding-top: env(safe-area-inset-top, 0px); }
+        body {
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+        /* Rolagem do mês para os lados não puxa a página nem o "voltar". */
+        .month-container { overscroll-behavior-x: contain; }
+        /* Dia da semana ao lado do número (ver script "diaDaSemanaNoDia"): no
+           celular o cabeçalho Dom/Seg/... some ao descer o mês. */
+        .day-number .dia-semana { display: none; }
+        @media (max-width: 760px) {
+            /* Cabeçalho mais baixo: o calendário aparece logo na primeira tela. */
+            .header { padding: 14px 16px 6px; }
+            .header .hero-eyebrow { font-size: 0.62em; letter-spacing: 0.18em; margin-bottom: 4px; }
+            .header h1 { font-size: 2.1em; margin-bottom: 2px; }
+            .header p { font-size: 0.86em; }
+            .header::after { display: none; }
+            #page-aulas .ac-header, #page-ciclos .ac-header, #page-trocas .ac-header { padding-top: 14px; padding-bottom: 6px; margin-bottom: 14px; }
+            #page-aulas .ac-header h1, #page-ciclos .ac-header h1, #page-trocas .ac-header h1 { font-size: 2.1em; }
+            #page-aulas .ac-header::after, #page-ciclos .ac-header::after, #page-trocas .ac-header::after { display: none; }
+            .nav-container { padding: 6px 0 14px; gap: 8px; }
+            .page-content { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+            /* Alvos de toque de pelo menos 44px (recomendação da Apple). */
+            .page-tabs { min-height: 0; padding-top: calc(6px + env(safe-area-inset-top, 0px)); padding-bottom: 6px; }
+            .page-tab { min-height: 44px; }
+            .nav-btn, .ics-btn { min-height: 44px; min-width: 44px; font-size: 16px; }
+            .view-btn { min-height: 36px; min-width: 40px; font-size: 16px; }
+            .collapse-toggle { min-height: 40px; padding: 8px 12px; }
+            .filter-item, .activity-filter-item { min-height: 40px; }
+            .res-pop .filter-item { min-height: 44px; }
+
+            /* Campos com letra menor que 16px fazem o iPhone dar zoom na tela
+               ao tocar; com 16px a tela fica parada. */
+            input, select, textarea, .month-select, .ac-month-select { font-size: 16px; }
+            .month-select { min-height: 44px; min-width: 0; flex: 1 1 150px; max-width: 220px; }
+
+            /* Número do dia com o dia da semana: "16 seg". */
+            .day-number .dia-semana {
+                display: inline;
+                margin-left: 6px;
+                font-size: 0.62em;
+                font-weight: 600;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                vertical-align: middle;
+            }
+            .day.today .day-number .dia-semana { color: var(--today-accent); }
+            /* Ao pular para um dia, ele para logo abaixo da barra de abas. */
+            .calendar .day { scroll-margin-top: 72px; }
+        }
+    </style>
 </head>
 <body>
     <div id="fluid-bg"></div>
@@ -1709,9 +1784,24 @@ void main() {
         const mouse = { x: 0, y: 0, px: 0, py: 0 };
         let mouseTimer = null;
 
+        // Celular/tablet: o fundo anda devagar, então 30 quadros por segundo
+        // ficam iguais à vista e gastam metade da bateria. Com "Reduzir
+        // movimento" ligado no iPhone, o fundo fica parado.
+        const toque = window.matchMedia('(pointer: coarse)').matches;
+        const intervaloQuadro = toque ? 1000 / 30 - 4 : 0;
+        const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let ultimoQuadro = 0;
+        let quadrosDesenhados = 0;
+        document.addEventListener('visibilitychange', function() { isActive = !document.hidden; });
+
         function animate() {
+            if (semMovimento && quadrosDesenhados >= 2) return;
             animFrame = requestAnimationFrame(animate);
             if (!isActive) return;
+            const agora = performance.now();
+            if (agora - ultimoQuadro < intervaloQuadro) return;
+            ultimoQuadro = agora;
+            quadrosDesenhados++;
 
             const elapsed = (performance.now() - startTime) / 1000;
 
@@ -1768,6 +1858,8 @@ void main() {
             fluidA.setSize(nsw, nsh);
             fluidB.setSize(nsw, nsh);
             fluidMat.uniforms.uResolution.value.set(nsw, nsh);
+            // Fundo parado: redesenha depois de mudar o tamanho da tela.
+            if (semMovimento && quadrosDesenhados >= 2) { quadrosDesenhados = 0; animate(); }
         }
 
         window.addEventListener('pointermove', onPointerMove);
@@ -1787,6 +1879,59 @@ void main() {
             renderer.dispose();
         });
     })();
+    </script>
+
+    <script>
+        // ===== Ajustes para iPhone / celular (ver CSS "Ajustes para iPhone") =====
+        (function ajustesCelular() {
+            const ehCelular = () => window.matchMedia('(max-width: 760px)').matches;
+
+            // Leva um dia do calendário para a tela: a coluna do dia fica na
+            // borda esquerda do mês e o topo do dia logo abaixo da barra de abas.
+            window.rolarParaDiaNoCelular = function(dia, comportamento) {
+                if (!dia) return;
+                const mes = dia.closest('.month-container');
+                if (mes && mes.scrollWidth > mes.clientWidth + 1) {
+                    const base = mes.getBoundingClientRect().left + mes.clientLeft;
+                    const alvo = dia.getBoundingClientRect().left - base + mes.scrollLeft - 6;
+                    mes.scrollTo({ left: Math.max(0, Math.min(alvo, mes.scrollWidth - mes.clientWidth)), behavior: comportamento });
+                }
+                const abas = document.querySelector('.page-tabs');
+                const folga = (abas ? abas.getBoundingClientRect().height : 0) + 10;
+                window.scrollTo({ top: Math.max(0, window.scrollY + dia.getBoundingClientRect().top - folga), behavior: comportamento });
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // "16 seg" no número de cada dia (só aparece no celular, via CSS).
+                const NOMES = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+                document.querySelectorAll('#page-escala .day[data-date] > .day-number').forEach(num => {
+                    const [a, m, d] = num.parentElement.dataset.date.split('-').map(Number);
+                    const span = document.createElement('span');
+                    span.className = 'dia-semana';
+                    span.setAttribute('aria-hidden', 'true');
+                    span.textContent = NOMES[new Date(a, m - 1, d).getDay()];
+                    num.appendChild(span);
+                });
+
+                // No celular, a escala abre já no dia de hoje (continua no
+                // calendário). Se a pessoa já mexeu na tela, não pula.
+                if (!ehCelular() || location.hash) return;
+                let mexeu = false;
+                const marcar = () => { mexeu = true; };
+                ['touchstart', 'wheel', 'keydown', 'mousedown'].forEach(ev =>
+                    window.addEventListener(ev, marcar, { once: true, passive: true }));
+                const irParaHoje = () => {
+                    if (mexeu || typeof escalaViewMode === 'undefined' || escalaViewMode !== 'calendar') return;
+                    const page = document.getElementById('page-escala');
+                    if (!page || !page.classList.contains('active')) return;
+                    window.rolarParaDiaNoCelular(document.querySelector('#page-escala .month-container.active .day.today'), 'auto');
+                };
+                if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+                requestAnimationFrame(() => requestAnimationFrame(irParaHoje));
+                // A fonte do Google chega depois e muda a altura dos dias.
+                if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(irParaHoje));
+            });
+        })();
     </script>
 
     <div class="page-tabs">
@@ -9227,7 +9372,10 @@ void main() {
                     return;
                 }
                 const activeTodayEl = document.querySelector('.month-container.active .day.today');
-                if (activeTodayEl) {
+                if (activeTodayEl && window.matchMedia('(max-width: 760px)').matches && window.rolarParaDiaNoCelular) {
+                    // No celular o dia é mais alto que a tela: mostra o começo dele.
+                    window.rolarParaDiaNoCelular(activeTodayEl, 'smooth');
+                } else if (activeTodayEl) {
                     activeTodayEl.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
                 }
             });
