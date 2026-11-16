@@ -383,6 +383,14 @@
         .cal-hbar-cursor { position: absolute; top: -3px; bottom: -3px; border-radius: 999px; background: rgba(48,176,208,0.75); cursor: grab; }
         .cal-hbar-cursor:active { cursor: grabbing; }
         @media print { .cal-hbar { display: none !important; } }
+        /* "Mês inteiro": encolhe o calendário (zoom) até as 7 colunas caberem
+           na largura da tela, sem mudar o desenho dos cartões. */
+        /* Só no computador/tablet: no celular o mês inteiro ficaria pequeno
+           demais para ler, então lá o botão some e o zoom não vale. */
+        @media (min-width: 761px) { body.cal-mes-inteiro .calendar { zoom: var(--cal-zoom, 1); } }
+        @media (max-width: 760px) { .nav-btn.zoom-btn { display: none; } }
+        .nav-btn.zoom-btn[aria-pressed="true"] { background: rgba(48,176,208,0.18); border-color: rgba(48,176,208,0.6); color: #30B0D0; }
+        #page-escala.agenda-mode .zoom-btn { display: none; }
         .calendar .cal-ac-badge { white-space: normal; overflow-wrap: anywhere; }
         .calendar .cycle-badge { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
         /* Cartões de fora a fora no dia; a letra do ciclo (data-ciclo) fica à
@@ -1872,6 +1880,7 @@ void main() {
             <button type="button" class="view-btn active" data-escala-view="calendar" aria-pressed="true" aria-label="Calendário" onclick="setEscalaView('calendar')">▦<span class="sr-only">Calendário</span></button>
             <button type="button" class="view-btn" data-escala-view="agenda" aria-pressed="false" aria-label="Agenda" onclick="setEscalaView('agenda')">☷<span class="sr-only">Agenda</span></button>
         </div>
+        <button type="button" class="nav-btn zoom-btn" id="zoomBtn" aria-pressed="false" aria-label="Mês inteiro na tela" title="Encolher o calendário para caber o mês inteiro na tela (clique de novo para voltar)" onclick="toggleMesInteiro()">⤢<span class="btn-text"> Mês inteiro</span></button>
         <button class="ics-btn" onclick="openIcsModal()">⇩<span class="btn-text"> Exportar</span></button>
     </div>
 
@@ -11031,6 +11040,43 @@ void main() {
             // Abrir/fechar um painel acima do calendário muda a posição do mês.
             if (window.ResizeObserver) new ResizeObserver(agendar).observe(page);
             atualizar();
+        })();
+    </script>
+    <script>
+        // Botão "Mês inteiro": liga/desliga um zoom no calendário que faz as
+        // 7 colunas caberem na largura da tela. A escolha fica guardada neste
+        // navegador.
+        (function initMesInteiro() {
+            const btn = document.getElementById('zoomBtn');
+            if (!btn) return;
+            const CHAVE = 'escala-mes-inteiro';
+            function calcularZoom() {
+                const m = document.querySelector('#page-escala .month-container.active');
+                const col = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cal-col')) || 245;
+                const natural = 7 * col + 6;
+                if (!m || !m.clientWidth) return;
+                const z = Math.min(1, (m.clientWidth - 1) / natural);
+                document.documentElement.style.setProperty('--cal-zoom', z.toFixed(4));
+            }
+            function aplicar(ligado) {
+                document.body.classList.toggle('cal-mes-inteiro', ligado);
+                // Nome fixo; o estado ligado/desligado vai só no aria-pressed.
+                btn.setAttribute('aria-pressed', String(ligado));
+                calcularZoom();
+            }
+            window.toggleMesInteiro = function() {
+                const ligado = !document.body.classList.contains('cal-mes-inteiro');
+                aplicar(ligado);
+                try { localStorage.setItem(CHAVE, ligado ? '1' : '0'); } catch (e) {}
+            };
+            let salvo = false;
+            try { salvo = localStorage.getItem(CHAVE) === '1'; } catch (e) {}
+            aplicar(salvo);
+            window.addEventListener('resize', calcularZoom);
+            // A tela pode ficar mais estreita/larga ao trocar de aba ou modo.
+            const obs = new MutationObserver(calcularZoom);
+            document.querySelectorAll('.page-content, #page-escala .month-container').forEach(el =>
+                obs.observe(el, { attributes: true, attributeFilter: ['class'] }));
         })();
     </script>
 </body>
