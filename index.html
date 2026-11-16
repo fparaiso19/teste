@@ -332,7 +332,10 @@
         .month-container > .month-header { position: sticky; left: 0; }
         /* "Mês inteiro": encolhe o calendário (zoom) até as 7 colunas caberem
            na largura da tela, sem mudar o desenho dos cartões. */
-        body.cal-mes-inteiro .calendar { zoom: var(--cal-zoom, 1); }
+        /* Só no computador/tablet: no celular o mês inteiro ficaria pequeno
+           demais para ler, então lá o botão some e o zoom não vale. */
+        @media (min-width: 761px) { body.cal-mes-inteiro .calendar { zoom: var(--cal-zoom, 1); } }
+        @media (max-width: 760px) { .nav-btn.zoom-btn { display: none; } }
         .nav-btn.zoom-btn[aria-pressed="true"] { background: rgba(48,176,208,0.18); border-color: rgba(48,176,208,0.6); color: #30B0D0; }
         #page-escala.agenda-mode .zoom-btn { display: none; }
         .calendar .cal-ac-badge { white-space: normal; overflow-wrap: anywhere; }
@@ -1824,7 +1827,7 @@ void main() {
             <button type="button" class="view-btn active" data-escala-view="calendar" aria-pressed="true" aria-label="Calendário" onclick="setEscalaView('calendar')">▦<span class="sr-only">Calendário</span></button>
             <button type="button" class="view-btn" data-escala-view="agenda" aria-pressed="false" aria-label="Agenda" onclick="setEscalaView('agenda')">☷<span class="sr-only">Agenda</span></button>
         </div>
-        <button type="button" class="nav-btn zoom-btn" id="zoomBtn" aria-pressed="false" title="Encolher o calendário para caber o mês inteiro na tela" onclick="toggleMesInteiro()">⤢<span class="btn-text"> Mês inteiro</span></button>
+        <button type="button" class="nav-btn zoom-btn" id="zoomBtn" aria-pressed="false" aria-label="Mês inteiro na tela" title="Encolher o calendário para caber o mês inteiro na tela (clique de novo para voltar)" onclick="toggleMesInteiro()">⤢<span class="btn-text"> Mês inteiro</span></button>
         <button class="ics-btn" onclick="openIcsModal()">⇩<span class="btn-text"> Exportar</span></button>
     </div>
 
@@ -10858,10 +10861,8 @@ void main() {
             }
             function aplicar(ligado) {
                 document.body.classList.toggle('cal-mes-inteiro', ligado);
+                // Nome fixo; o estado ligado/desligado vai só no aria-pressed.
                 btn.setAttribute('aria-pressed', String(ligado));
-                const txt = btn.querySelector('.btn-text');
-                if (txt) txt.textContent = ligado ? ' Tamanho normal' : ' Mês inteiro';
-                btn.setAttribute('aria-label', ligado ? 'Voltar ao tamanho normal do calendário' : 'Ver o mês inteiro na tela');
                 calcularZoom();
             }
             window.toggleMesInteiro = function() {
