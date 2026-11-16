@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- iPhone: cor da barra do Safari, ícone e modo "app" ao adicionar à
          Tela de Início (abre sem a barra de endereço). -->
-    <meta name="theme-color" content="#050A0F">
+    <meta name="theme-color" content="#050A0F" media="(max-width: 760px)">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1465,12 +1465,15 @@
            por baixo do relógio/notch, e no celular deitado o conteúdo não
            fica por baixo da câmera. */
         .page-tabs { padding-top: env(safe-area-inset-top, 0px); }
-        body {
-            padding-left: env(safe-area-inset-left, 0px);
-            padding-right: env(safe-area-inset-right, 0px);
+        .page-tabs {
+            padding-left: max(clamp(20px, 5vw, 88px), env(safe-area-inset-left, 0px));
+            padding-right: max(clamp(20px, 5vw, 88px), env(safe-area-inset-right, 0px));
         }
-        /* Rolagem do mês para os lados não puxa a página nem o "voltar". */
-        .month-container { overscroll-behavior-x: contain; }
+        .page-content {
+            padding-left: max(20px, env(safe-area-inset-left, 0px));
+            padding-right: max(20px, env(safe-area-inset-right, 0px));
+        }
+        .res-fab, .res-pop { right: calc(16px + env(safe-area-inset-right, 0px)); }
         /* Dia da semana ao lado do número (ver script "diaDaSemanaNoDia"): no
            celular o cabeçalho Dom/Seg/... some ao descer o mês. */
         .day-number .dia-semana { display: none; }
@@ -1485,6 +1488,12 @@
             #page-aulas .ac-header h1, #page-ciclos .ac-header h1, #page-trocas .ac-header h1 { font-size: 2.1em; }
             #page-aulas .ac-header::after, #page-ciclos .ac-header::after, #page-trocas .ac-header::after { display: none; }
             .nav-container { padding: 6px 0 14px; gap: 8px; }
+            /* Rolagem do mês para os lados não puxa a página nem o "voltar". */
+            .month-container { overscroll-behavior-x: contain; }
+            .page-tabs {
+                padding-left: max(16px, env(safe-area-inset-left, 0px));
+                padding-right: max(16px, env(safe-area-inset-right, 0px));
+            }
             .page-content { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
             /* Alvos de toque de pelo menos 44px (recomendação da Apple). */
@@ -1514,7 +1523,7 @@
             }
             .day.today .day-number .dia-semana { color: var(--today-accent); }
             /* Ao pular para um dia, ele para logo abaixo da barra de abas. */
-            .calendar .day { scroll-margin-top: 72px; }
+            .calendar .day { scroll-margin-top: calc(72px + env(safe-area-inset-top, 0px)); }
         }
     </style>
 </head>
@@ -1805,7 +1814,10 @@ void main() {
 
             const elapsed = (performance.now() - startTime) / 1000;
 
-            // Fluid pass: read A -> write B
+            // Fluid pass: read A -> write B. A 30 quadros/s a simulação (que é
+            // pequena e barata) roda 2 passos por quadro, para o rastro do dedo
+            // durar o mesmo tempo que a 60.
+            for (let passo = 0; passo < (toque ? 2 : 1); passo++) {
             fluidMat.uniforms.uFluidTex.value = fluidA.texture;
             fluidMat.uniforms.iMouse.value.set(
                 mouse.x * simW / w,
@@ -1821,6 +1833,7 @@ void main() {
             const tmp = fluidA;
             fluidA = fluidB;
             fluidB = tmp;
+            }
 
             // Display pass
             displayMat.uniforms.u_time.value = elapsed;
