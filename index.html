@@ -344,7 +344,7 @@
             padding: 4px;
             border-radius: 999px;
             border: 1px solid rgba(48,176,208,0.45);
-            background: rgba(5,10,15,0.92);
+            background: rgba(5,10,15,0.97);
             box-shadow: 0 6px 24px rgba(0,0,0,0.45);
         }
         .cal-hbar.visible { display: flex; }
@@ -361,7 +361,7 @@
             line-height: 1;
             cursor: pointer;
         }
-        .cal-hbar-btn:disabled { opacity: 0.3; cursor: default; }
+        .cal-hbar-btn[aria-disabled="true"] { opacity: 0.3; cursor: default; }
         .cal-hbar-btn:focus-visible { outline: 2px solid #30B0D0; outline-offset: 2px; }
         .cal-hbar-meio { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
         .cal-hbar-dias { display: flex; gap: 2px; }
@@ -382,10 +382,6 @@
         .cal-hbar-trilho { position: relative; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.12); cursor: pointer; touch-action: none; }
         .cal-hbar-cursor { position: absolute; top: -3px; bottom: -3px; border-radius: 999px; background: rgba(48,176,208,0.75); cursor: grab; }
         .cal-hbar-cursor:active { cursor: grabbing; }
-        /* Arrastar o calendário com o mouse (no celular o dedo já arrasta). */
-        .month-container.pode-arrastar { cursor: grab; }
-        .month-container.arrastando { cursor: grabbing; user-select: none; }
-        .month-container.arrastando * { cursor: grabbing !important; }
         @media print { .cal-hbar { display: none !important; } }
         .calendar .cal-ac-badge { white-space: normal; overflow-wrap: anywhere; }
         .calendar .cycle-badge { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
@@ -10895,8 +10891,7 @@ void main() {
         // Barra de rolagem lateral fixa no rodapé da tela (Escala, modo
         // calendário). Com colunas de largura fixa, o mês pode não caber na
         // tela e a barra nativa fica lá no fim do cartão; esta barra fica
-        // sempre à vista enquanto o mês está na tela. Também deixa arrastar
-        // o calendário com o mouse.
+        // sempre à vista enquanto o mês está na tela.
         (function initBarraLateral() {
             const page = document.getElementById('page-escala');
             if (!page) return;
@@ -10941,7 +10936,6 @@ void main() {
                 let mostrar = false;
                 if (m && page.offsetParent !== null && !page.classList.contains('agenda-mode')) {
                     const sobra = m.scrollWidth - m.clientWidth;
-                    m.classList.toggle('pode-arrastar', sobra > 1);
                     const r = m.getBoundingClientRect();
                     mostrar = sobra > 1 && r.height > 0 && r.top < innerHeight - 90 && r.bottom > 150;
                     if (mostrar) {
@@ -10958,8 +10952,8 @@ void main() {
                         bar.style.width = largura + 'px';
                         bar.classList.toggle('compacta', largura < 330);
                         const sl = m.scrollLeft;
-                        btnEsq.disabled = sl <= 1;
-                        btnDir.disabled = sl >= sobra - 1;
+                        btnEsq.setAttribute('aria-disabled', String(sl <= 1));
+                        btnDir.setAttribute('aria-disabled', String(sl >= sobra - 1));
                         const cols = colunas(m);
                         dias.forEach((d, i) => {
                             const c = cols[i];
@@ -10985,6 +10979,7 @@ void main() {
                 const cols = colunas(m);
                 const sl = m.scrollLeft;
                 if (btn) {
+                    if (btn.getAttribute('aria-disabled') === 'true') return;
                     if (btn.dataset.dir === '1') {
                         const prox = cols.find(c => c.ini > sl + 2);
                         if (prox) rolarPara(m, prox.ini);
@@ -11024,42 +11019,6 @@ void main() {
             trilho.addEventListener('pointerup', soltar);
             trilho.addEventListener('pointercancel', soltar);
 
-            // Arrastar o calendário com o mouse (no celular o dedo já rola).
-            let arrasto = null, arrastou = false;
-            document.addEventListener('pointerdown', e => {
-                arrastou = false;
-                if (e.pointerType !== 'mouse' || e.button !== 0) return;
-                const m = e.target.closest('#page-escala .month-container.active.pode-arrastar');
-                if (!m || e.target.closest('button, a, input, select, textarea, label')) return;
-                arrasto = { m, x: e.clientX, sl: m.scrollLeft };
-            });
-            document.addEventListener('pointermove', e => {
-                if (!arrasto) return;
-                const dx = e.clientX - arrasto.x;
-                if (!arrastou && Math.abs(dx) < 6) return;
-                if (!arrastou) {
-                    arrastou = true;
-                    arrasto.m.classList.add('arrastando');
-                    const sel = window.getSelection();
-                    if (sel) sel.removeAllRanges();
-                }
-                arrasto.m.scrollLeft = arrasto.sl - dx;
-            });
-            const fimArrasto = () => {
-                if (!arrasto) return;
-                arrasto.m.classList.remove('arrastando');
-                arrasto = null;
-            };
-            document.addEventListener('pointerup', fimArrasto);
-            document.addEventListener('pointercancel', fimArrasto);
-            // Depois de arrastar, o clique que vem junto não abre nada.
-            document.addEventListener('click', e => {
-                if (!arrastou) return;
-                arrastou = false;
-                e.stopPropagation();
-                e.preventDefault();
-            }, true);
-
             window.addEventListener('scroll', agendar, { passive: true });
             window.addEventListener('resize', agendar);
             document.addEventListener('scroll', agendar, { capture: true, passive: true });
@@ -11069,6 +11028,8 @@ void main() {
                 obs.observe(el, { attributes: true, attributeFilter: ['class'] }));
             const fab = document.querySelector('.res-fab');
             if (fab) obs.observe(fab, { attributes: true, attributeFilter: ['class'] });
+            // Abrir/fechar um painel acima do calendário muda a posição do mês.
+            if (window.ResizeObserver) new ResizeObserver(agendar).observe(page);
             atualizar();
         })();
     </script>
