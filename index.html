@@ -334,18 +334,21 @@
            tela (menos o menu do topo e o botão Residentes) e rola por dentro
            nos dois sentidos. Assim a barra de rolagem lateral fica sempre à
            vista (no pé do cartão) e a linha dos dias da semana fica presa no
-           topo enquanto se desce pelas semanas. */
-        .month-container {
-            max-height: calc(100vh - 140px);
-            max-height: calc(100dvh - 140px);
-            overflow: auto;
-            overscroll-behavior-x: contain;
-        }
-        .month-container .weekday-header {
-            position: sticky;
-            top: 0;
-            z-index: 3;
-            box-shadow: 0 1px 0 var(--border-color), 0 6px 12px -8px rgba(0,0,0,0.6);
+           topo enquanto se desce pelas semanas. Vale só no computador e quando
+           o mês não cabe na largura (até 1780px); no celular fica como antes. */
+        @media (min-width: 761px) and (max-width: 1780px) {
+            .month-container {
+                max-height: calc(100vh - 140px);
+                max-height: calc(100dvh - 140px);
+                overflow: auto;
+                overscroll-behavior-x: contain;
+            }
+            .month-container .weekday-header {
+                position: sticky;
+                top: 0;
+                z-index: 3;
+                box-shadow: 0 1px 0 var(--border-color), 0 6px 12px -8px rgba(0,0,0,0.6);
+            }
         }
         .month-container::-webkit-scrollbar { width: 12px; height: 12px; }
         .month-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
